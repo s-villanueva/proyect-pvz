@@ -30,6 +30,6 @@ public class GreenPea extends Attack {
     }
 
     public void avanzar() {
-        x = x + 1;
+        x = x + 4 ;
     }
 }

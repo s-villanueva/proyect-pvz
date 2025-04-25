@@ -101,4 +101,12 @@ public class Game {
         gp.setMaxXToDied(800);
         return gp;
     }
+
+    @Getter
+    private volatile Plant selectedPlant = null;
+
+    public void selectPlant(Plant plant) {
+        this.selectedPlant = plant;
+    }
+
 }

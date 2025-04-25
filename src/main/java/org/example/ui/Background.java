@@ -1,5 +1,8 @@
 package org.example.ui;
 
+import lombok.Setter;
+import org.example.logic.Game;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -14,8 +17,10 @@ import java.io.InputStream;
  * @since 1.0
  */
 public class Background extends JPanel {
-
+    @Setter
+    private Game game;
     private BufferedImage bufferedImage;
+
 
     public Background() {
         InputStream inputStream = null;
@@ -49,7 +54,7 @@ public class Background extends JPanel {
         int rows = 5;
         int cols = 9;
         int cellWidth = 100;
-        int cellHeight = 120;
+        int cellHeight = 125;
 
         // Dibujar la cuadrícula sobre el fondo
         for (int row = 0; row < rows; row++) {
@@ -60,6 +65,7 @@ public class Background extends JPanel {
                 g.drawRect(x, y, cellWidth, cellHeight);
             }
         }
+
     }
 
 
@@ -70,7 +76,7 @@ public class Background extends JPanel {
 
         //g2d.drawImage(bufferedImage, 0, 0, getWidth(), getHeight(), this);
         g.drawImage(bufferedImage, 0, 0, getWidth(), getHeight()
-                , 165, 0
+                , 175, 0
                 , 990, 570, this);
     }
 }
