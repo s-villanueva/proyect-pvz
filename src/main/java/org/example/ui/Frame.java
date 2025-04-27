@@ -28,17 +28,8 @@ public class Frame extends JFrame implements IGameEvents {
         MenuPanel menuPanel = new MenuPanel("SelectionMenu.png"); // tu imagen en resources
         menuPanel.setBounds(90, 0, 700, 80); // ubica el panel arriba del todo
 
-// Botón para PeaShooter
-        JButton peaShooterButton = new JButton(new ImageIcon("PeaShooterSeed.png"));
-        peaShooterButton.setPreferredSize(new Dimension(60, 60));
-        peaShooterButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
-        });
-        menuPanel.add(peaShooterButton);
-
-// Botón para SunFlower
         JButton sunFlowerButton = new JButton(new ImageIcon("SunflowerSeed.png"));
+        sunFlowerButton.setContentAreaFilled(false);
         sunFlowerButton.setPreferredSize(new Dimension(60, 60));
         sunFlowerButton.addActionListener(e -> {
             int dummyX = 0, dummyY = 0;
@@ -46,12 +37,22 @@ public class Frame extends JFrame implements IGameEvents {
         });
         menuPanel.add(sunFlowerButton);
 
+        JButton peaShooterButton = new JButton(new ImageIcon("PeaShooterSeed.png"));
+        peaShooterButton.setContentAreaFilled(false);
+        peaShooterButton.setPreferredSize(new Dimension(60, 60));
+        peaShooterButton.addActionListener(e -> {
+            int dummyX = 0, dummyY = 0;
+            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
+        });
+
+        menuPanel.add(peaShooterButton);
+
         add(menuPanel);
 
 
         // Crear una instancia de Background
         Background background = new Background();
-        background.setBounds(0, 0, getWidth(), getHeight());
+        background.setBounds(0, 0, getWidth(), getHeight()+20);
         background.setBounds(0, 0, getWidth(), getHeight());
         background.setGame(game);
         add(background);
