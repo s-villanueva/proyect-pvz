@@ -3,11 +3,12 @@ package org.example.logic;
 import lombok.Getter;
 import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
+import org.example.model.plant.CherryBomb;
 import org.example.model.plant.PeaShooter;
 import org.example.model.plant.Plant;
-import org.example.model.plant.SunFlower;
 import org.example.model.plant.WallNut;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +19,8 @@ public class Game {
     public static final int PEA_SHOOTER_HEIGHT = 70;
     public static final int PEA_WIDTH = 20;
     public static final int PEA_HEIGHT = 20;
+    public static final int CHERRY_BOMB_WIDTH = 60; // Define el tamaño de la CherryBomb
+    public static final int CHERRY_BOMB_HEIGHT = 60;
 
     private int posStartX = 0;
     private int posStartY = 0;
@@ -41,6 +44,7 @@ public class Game {
         this.posStartX = 100;
         this.posStartY = 100;
         this.plantsInBoard = new boolean[5][9];
+
     }
 
     public void addPlant(int row, int col, Plant plant) {
@@ -52,6 +56,24 @@ public class Game {
         plants.add(plant);
         iGameEvents.addPlantUI(plant);
     }
+
+    public void deletePlant(Plant plant) {
+        // Eliminar la planta de la lista de plantas
+        plants.remove(plant);
+
+        // Liberar el espacio en el tablero
+        synchronized (plantsInBoard) {
+            int row = (plant.getY() - posStartY) / plant.getHeight();
+            int col = (plant.getX() - posStartX) / plant.getWidth();
+            if (row >= 0 && row < 5 && col >= 0 && col < 9) {
+                plantsInBoard[row][col] = false;
+            }
+        }
+
+        // Eliminar la planta de la interfaz de usuario
+        iGameEvents.deleteComponentUI(plant.getId());
+    }
+
 
     public void reviewPlants() {
         long currentTime = System.currentTimeMillis();
@@ -66,9 +88,36 @@ public class Game {
                     }
                     iGameEvents.throwAttackUI(p);
                 }
-            } else if (plant instanceof SunFlower sf) {
-                // comportamiento del SunFlower si se desea implementar
+            } else if (plant instanceof CherryBomb cb) {
+                // Revisar si la CherryBomb debe explotar
+                if (!cb.isExploded() && (currentTime - cb.getPrevTime() >= cb.getExplosionTime())) {
+                    cb.explode();  // Llamamos a la explosión de la CherryBomb
+                    iGameEvents.explosionUI(cb);  // Actualizamos la UI para mostrar la explosión
+
+                    // Programamos la eliminación de la CherryBomb después de la explosión
+                    // Suponemos que la explosión dura 1 segundo (1000 ms)
+                    Timer timer = new Timer(1000, e -> {
+                        // Primero eliminamos la planta de la lista de plantas
+                        plants.remove(cb);
+
+                        // Luego, marcamos la celda correspondiente como vacía
+                        synchronized (plantsInBoard) {
+                            int row = (cb.getY() - posStartY) / CHERRY_BOMB_HEIGHT;
+                            int col = (cb.getX() - posStartX) / CHERRY_BOMB_WIDTH;
+                            if (row >= 0 && row < 5 && col >= 0 && col < 9) {
+                                plantsInBoard[row][col] = false;
+                            }
+                        }
+
+                        // Actualizamos la interfaz de usuario eliminando el componente
+                        iGameEvents.deleteComponentUI(cb.getId());  // Eliminar de la UI
+                    });
+
+                    timer.setRepeats(false);
+                    timer.start();
+                }
             }
+
         }
     }
 
@@ -88,7 +137,6 @@ public class Game {
             }
         }
     }
-
 
     public void reviewAttacks() {
         long currentTime = System.currentTimeMillis();

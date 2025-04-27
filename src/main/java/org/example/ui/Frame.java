@@ -3,13 +3,12 @@ package org.example.ui;
 import org.example.logic.Game;
 import org.example.logic.IGameEvents;
 import org.example.model.attack.GreenPea;
-import org.example.model.plant.PeaShooter;
-import org.example.model.plant.Plant;
-import org.example.model.plant.SunFlower;
-import org.example.model.plant.WallNut;
+import org.example.model.plant.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -63,7 +62,7 @@ public class Frame extends JFrame implements IGameEvents {
         cherryBombButton.setPreferredSize(new Dimension(60, 60));
         cherryBombButton.addActionListener(e -> {
             int dummyX = 0, dummyY = 0;
-//            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
+            game.selectPlant(new CherryBomb(dummyX, dummyY, 50, 60, this));
         });
 
         menuPanel.add(cherryBombButton);
@@ -143,6 +142,8 @@ public class Frame extends JFrame implements IGameEvents {
             drawing = new SunFlowerDrawing(sf);
         } else if (p instanceof WallNut wn) {  // Añadimos WallNut
             drawing = new WallNutDrawing(wn);  // Usamos el dibujo de WallNut
+        } else if (p instanceof  CherryBomb cb) {
+            drawing = new CherryBombDrawing(cb);
         }
         if (drawing != null) {
             getContentPane().add(drawing, 0);  // Añadir la planta al panel
@@ -179,6 +180,37 @@ public class Frame extends JFrame implements IGameEvents {
 
     }
 
+    @Override
+    public void explosionUI(CherryBomb cherryBomb) {
+        CherryBombDrawing cbDrawing = new CherryBombDrawing(cherryBomb);  // Crear el dibujo de la CherryBomb
+        getContentPane().add(cbDrawing, 0);  // Añadir el dibujo al contenedor de la ventana
+        cbDrawing.repaint();  // Redibujar para mostrar la explosión
+
+        // Mostrar la animación de la explosión
+        Timer timer = new Timer(100, new ActionListener() {
+            int explosionFrame = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (explosionFrame == 0) {
+                    // Iniciar la animación de la explosión
+                    cbDrawing.setExplosion(true);  // Iniciar la animación de explosión
+                    cbDrawing.repaint();
+                    explosionFrame++;
+                } else if (explosionFrame == 1) {
+                    // Eliminar el dibujo después de que la explosión ha terminado
+                    getContentPane().remove(cbDrawing);  // Quitar el dibujo de la explosión
+                    getContentPane().repaint();  // Redibujar la ventana
+
+                    // Detener el temporizador después de 1 segundo (asumimos que el GIF dura 1 segundo)
+                    ((Timer) e.getSource()).stop();  // Detener el temporizador
+                }
+            }
+        });
+        timer.start();  // Comienza la animación de la explosión
+    }
+
+
     public Component getComponentById(String id) {
         for (Component c : getContentPane().getComponents()) {
             if (c instanceof GreenPeaDrawing pd && pd.getId().equals(id)) {
@@ -187,6 +219,7 @@ public class Frame extends JFrame implements IGameEvents {
         }
         return null;
     }
+
 
 
 

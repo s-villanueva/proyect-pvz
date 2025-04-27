@@ -1,6 +1,7 @@
 package org.example.logic;
 
 import org.example.model.attack.GreenPea;
+import org.example.model.plant.CherryBomb;
 import org.example.model.plant.Plant;
 
 /**
@@ -20,5 +21,7 @@ public interface IGameEvents {
     void deleteComponentUI(String id);
 
     void updateHealthUI(int id, int health);  // Mostrar salud de una planta (en este caso la Nuez)
+
+    void explosionUI(CherryBomb cherryBomb); // Método para mostrar la explosión
 
 }

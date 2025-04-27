@@ -27,11 +27,4 @@ public class WallNut extends Plant {
         return this.health <= 0;
     }
 
-    public int getHealth() {
-        return health;
-    }
-
-    public int getMaxHealth() {
-        return maxHealth;
-    }
 }
