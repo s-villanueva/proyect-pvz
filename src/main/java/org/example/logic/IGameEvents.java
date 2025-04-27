@@ -18,4 +18,7 @@ public interface IGameEvents {
     void updatePositionUI(String id);
 
     void deleteComponentUI(String id);
+
+    void updateHealthUI(int id, int health);  // Mostrar salud de una planta (en este caso la Nuez)
+
 }

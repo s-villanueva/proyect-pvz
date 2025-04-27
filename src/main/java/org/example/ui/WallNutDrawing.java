@@ -1,7 +1,7 @@
 package org.example.ui;
 
 import lombok.Getter;
-import org.example.model.attack.GreenPea;
+import org.example.model.plant.WallNut;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,18 +10,26 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * WallNutDrawing
+ *
+ * @author Marcos Quispe
+ * @since 1.0
+ */
 @Getter
-public class GreenPeaDrawing extends JComponent {
-    private GreenPea greenPea;
+public class WallNutDrawing extends JComponent {
     private BufferedImage bi;
 
-    public GreenPeaDrawing(GreenPea greenPea) {
-        this.greenPea = greenPea;
-        setBounds(greenPea.getX(), greenPea.getY(), greenPea.getWidth(), greenPea.getHeight()); // obligatorio
+    private WallNut wallNut;
+
+    public WallNutDrawing(WallNut wallNut) {
+        this.wallNut = wallNut;
+        setBounds(wallNut.getX(), wallNut.getY(), wallNut.getWidth(), wallNut.getHeight()); // obligatorio
 
         InputStream inputStream = null;
         try {
-            inputStream = this.getClass().getClassLoader().getResourceAsStream("ProjectilePea.png"); // funciona con png o jpg, pero no con webp
+
+            inputStream = this.getClass().getClassLoader().getResourceAsStream("WallNut.png"); // Ajusta el nombre si es necesario
             bi = ImageIO.read(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -37,17 +45,12 @@ public class GreenPeaDrawing extends JComponent {
     }
 
     public String getId() {
-        return greenPea.getId();
-    }
-
-    public void updatePosition() {
-        setLocation(greenPea.getX(), greenPea.getY());
-        repaint();
+        return wallNut.getId();
     }
 
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        g2d.drawImage(bi, 0, 0, greenPea.getWidth(), greenPea.getHeight(), this);
+        g2d.drawImage(bi, 0, 0, wallNut.getWidth(), wallNut.getHeight(), this);
     }
 }

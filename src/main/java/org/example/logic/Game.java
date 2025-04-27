@@ -6,10 +6,11 @@ import org.example.model.attack.GreenPea;
 import org.example.model.plant.PeaShooter;
 import org.example.model.plant.Plant;
 import org.example.model.plant.SunFlower;
+import org.example.model.plant.WallNut;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Game {
@@ -70,6 +71,24 @@ public class Game {
             }
         }
     }
+
+    public void damagePlant(Plant plant, int damage) {
+        if (plant instanceof WallNut wn) {
+            wn.takeDamage(damage);
+            if (wn.isDead()) {
+                plants.remove(wn);
+                synchronized (plantsInBoard) {
+                    int row = (wn.getY() - posStartY) / PEA_SHOOTER_HEIGHT;
+                    int col = (wn.getX() - posStartX) / PEA_SHOOTER_WIDTH;
+                    if (row >= 0 && row < 5 && col >= 0 && col < 9) {
+                        plantsInBoard[row][col] = false;
+                    }
+                }
+                iGameEvents.deleteComponentUI(wn.getId());
+            }
+        }
+    }
+
 
     public void reviewAttacks() {
         long currentTime = System.currentTimeMillis();

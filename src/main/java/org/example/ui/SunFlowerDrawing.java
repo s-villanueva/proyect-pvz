@@ -11,12 +11,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * ShapeDrawing
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 @Getter
 public class SunFlowerDrawing extends JComponent {
     private BufferedImage bi;

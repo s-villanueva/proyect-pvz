@@ -6,6 +6,7 @@ import org.example.model.attack.GreenPea;
 import org.example.model.plant.PeaShooter;
 import org.example.model.plant.Plant;
 import org.example.model.plant.SunFlower;
+import org.example.model.plant.WallNut;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,6 +47,36 @@ public class Frame extends JFrame implements IGameEvents {
         });
 
         menuPanel.add(peaShooterButton);
+
+        JButton wallNutButton = new JButton(new ImageIcon("WallNutSeed.png"));
+        wallNutButton.setContentAreaFilled(false);
+        wallNutButton.setPreferredSize(new Dimension(60, 60));
+        wallNutButton.addActionListener(e -> {
+            int dummyX = 0, dummyY = 0;
+            game.selectPlant(new WallNut(dummyX, dummyY, 50, 60));
+        });
+
+        menuPanel.add(wallNutButton);
+
+        JButton cherryBombButton = new JButton(new ImageIcon("CherryBombButton.png"));
+        cherryBombButton.setContentAreaFilled(false);
+        cherryBombButton.setPreferredSize(new Dimension(60, 60));
+        cherryBombButton.addActionListener(e -> {
+            int dummyX = 0, dummyY = 0;
+//            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
+        });
+
+        menuPanel.add(cherryBombButton);
+
+        JButton snowPeaShooterButton = new JButton(new ImageIcon("SnowPeaShooterSeed.png"));
+        snowPeaShooterButton.setContentAreaFilled(false);
+        snowPeaShooterButton.setPreferredSize(new Dimension(60, 60));
+        snowPeaShooterButton.addActionListener(e -> {
+            int dummyX = 0, dummyY = 0;
+//            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
+        });
+
+        menuPanel.add(snowPeaShooterButton);
 
         add(menuPanel);
 
@@ -110,12 +141,15 @@ public class Frame extends JFrame implements IGameEvents {
             drawing = new PeaShooterDrawing(ps);
         } else if (p instanceof SunFlower sf) {
             drawing = new SunFlowerDrawing(sf);
+        } else if (p instanceof WallNut wn) {  // Añadimos WallNut
+            drawing = new WallNutDrawing(wn);  // Usamos el dibujo de WallNut
         }
         if (drawing != null) {
-            getContentPane().add(drawing, 0);
-            drawing.repaint();
+            getContentPane().add(drawing, 0);  // Añadir la planta al panel
+            drawing.repaint();  // Redibujamos para mostrarla
         }
     }
+
 
     @Override
     public void throwAttackUI(GreenPea p) {
@@ -140,6 +174,11 @@ public class Frame extends JFrame implements IGameEvents {
         }
     }
 
+    @Override
+    public void updateHealthUI(int id, int health) {
+
+    }
+
     public Component getComponentById(String id) {
         for (Component c : getContentPane().getComponents()) {
             if (c instanceof GreenPeaDrawing pd && pd.getId().equals(id)) {
@@ -148,6 +187,8 @@ public class Frame extends JFrame implements IGameEvents {
         }
         return null;
     }
+
+
 
     public static void main(String[] args) {
         new Frame();

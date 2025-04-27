@@ -2,16 +2,9 @@ package org.example.model.plant;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.UUID;
 
-/**
- * PeaShooter
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 @Getter
 @Setter
 public class SunFlower extends Plant {

@@ -10,12 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Fondo
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 public class Background extends JPanel {
     @Setter
     private Game game;

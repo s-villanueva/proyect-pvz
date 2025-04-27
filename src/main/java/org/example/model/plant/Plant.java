@@ -20,4 +20,5 @@ public class Plant {
     protected int reloadTime;
     protected int defenseInitial;
     protected int defense;
+
 }

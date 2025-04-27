@@ -30,7 +30,9 @@ public class MenuPanel extends JPanel {
         String[] seedPaths = {
                 "SunflowerSeed.png",
                 "PeaShooterSeed.png",
-                // Agrega aquí más imágenes si quieres
+                "WallNutSeed.png",
+                "CherryBombSeed.png",
+                "SnowPeaShooterSeed.png"
         };
 
         seedImages = new BufferedImage[seedPaths.length];
