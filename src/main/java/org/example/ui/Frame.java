@@ -2,7 +2,9 @@ package org.example.ui;
 
 import org.example.logic.Game;
 import org.example.logic.IGameEvents;
+import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
+import org.example.model.attack.SnowPea;
 import org.example.model.plant.*;
 
 import javax.swing.*;
@@ -72,7 +74,7 @@ public class Frame extends JFrame implements IGameEvents {
         snowPeaShooterButton.setPreferredSize(new Dimension(60, 60));
         snowPeaShooterButton.addActionListener(e -> {
             int dummyX = 0, dummyY = 0;
-//            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
+            game.selectPlant(new SnowPeaShooter(dummyX, dummyY, 50, 70));
         });
 
         menuPanel.add(snowPeaShooterButton);
@@ -144,6 +146,8 @@ public class Frame extends JFrame implements IGameEvents {
             drawing = new WallNutDrawing(wn);  // Usamos el dibujo de WallNut
         } else if (p instanceof  CherryBomb cb) {
             drawing = new CherryBombDrawing(cb);
+        } else if (p instanceof SnowPeaShooter sps) {
+            drawing = new SnowPeaShooterDrawing(sps);
         }
         if (drawing != null) {
             getContentPane().add(drawing, 0);  // Añadir la planta al panel
@@ -153,17 +157,26 @@ public class Frame extends JFrame implements IGameEvents {
 
 
     @Override
-    public void throwAttackUI(GreenPea p) {
-        GreenPeaDrawing pd = new GreenPeaDrawing(p);
-        getContentPane().add(pd, 0);
-        pd.repaint();
+    public void throwAttackUI(Attack attack) {
+        if (attack instanceof GreenPea greenPea) {
+            GreenPeaDrawing pd = new GreenPeaDrawing(greenPea);
+            getContentPane().add(pd, 0);
+            pd.repaint();
+        } else if (attack instanceof SnowPea snowPea) {
+            SnowPeaDrawing spd = new SnowPeaDrawing(snowPea);
+            getContentPane().add(spd, 0);
+            spd.repaint();
+        }
     }
+
 
     @Override
     public void updatePositionUI(String id) {
         Component c = getComponentById(id);
         if (c instanceof GreenPeaDrawing pd) {
             pd.updatePosition();
+        } else if (c instanceof SnowPeaDrawing sps) {
+            sps.updatePosition();
         }
     }
 
@@ -215,6 +228,8 @@ public class Frame extends JFrame implements IGameEvents {
         for (Component c : getContentPane().getComponents()) {
             if (c instanceof GreenPeaDrawing pd && pd.getId().equals(id)) {
                 return pd;
+            } else if (c instanceof SnowPeaDrawing spd && spd.getId().equals(id)) {
+                return spd;
             }
         }
         return null;

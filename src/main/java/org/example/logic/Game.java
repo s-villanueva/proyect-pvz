@@ -3,10 +3,8 @@ package org.example.logic;
 import lombok.Getter;
 import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
-import org.example.model.plant.CherryBomb;
-import org.example.model.plant.PeaShooter;
-import org.example.model.plant.Plant;
-import org.example.model.plant.WallNut;
+import org.example.model.attack.SnowPea;
+import org.example.model.plant.*;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -116,6 +114,16 @@ public class Game {
                     timer.setRepeats(false);
                     timer.start();
                 }
+
+            } else if (plant instanceof SnowPeaShooter sps) {
+                if (currentTime - sps.getPrevTime() > sps.getAttackTime()) {
+                    sps.setPrevTime(currentTime);
+                    SnowPea sp = newSnowPea(sps);
+                    synchronized (attacks) {
+                        attacks.add(sp);
+                    }
+                    iGameEvents.throwAttackUI(sp);
+                }
             }
 
         }
@@ -155,7 +163,19 @@ public class Game {
                         }
                         gp.setPrevTime(currentTime);
                     }
+                } else if (attack instanceof SnowPea sp) {
+                    if (currentTime - sp.getPrevTime() > sp.getAdvanceTime()) {
+                        sp.avanzar();
+                        if (sp.getX() > sp.getMaxXToDied()) {
+                            toRemove.add(attack);
+                            iGameEvents.deleteComponentUI(attack.getId());
+                        } else {
+                            iGameEvents.updatePositionUI(sp.getId());
+                        }
+                        sp.setPrevTime(currentTime);
+                    }
                 }
+
             }
             attacks.removeAll(toRemove);
         }
@@ -168,6 +188,15 @@ public class Game {
         gp.setMaxXToDied(800);
         return gp;
     }
+
+    private SnowPea newSnowPea(SnowPeaShooter plant) {
+        int x = plant.getX() + plant.getWidth();
+        int y = plant.getY() + (PEA_SHOOTER_HEIGHT / 4) - (PEA_WIDTH / 2) + 4;
+        SnowPea sp = new SnowPea(x, y, PEA_WIDTH, PEA_HEIGHT);
+        sp.setMaxXToDied(800);
+        return sp;
+    }
+
 
     @Getter
     private volatile Plant selectedPlant = null;

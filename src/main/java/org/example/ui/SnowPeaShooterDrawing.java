@@ -1,7 +1,7 @@
 package org.example.ui;
 
 import lombok.Getter;
-import org.example.model.plant.PeaShooter;
+import org.example.model.plant.SnowPeaShooter;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,23 +11,23 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class PeaShooterDrawing extends JComponent {
+public class SnowPeaShooterDrawing extends JComponent {
     private BufferedImage spriteSheet;
-    private PeaShooter peaShooter;
+    private SnowPeaShooter snowPeaShooter;
 
     private int frame = 0;
     private final int totalFrames = 8;
-    private final int frameWidth = 26;
+    private final int frameWidth = 31;
     private final int frameHeight = 32;
-    private final int frameSpacing = 3; // espacio entre frames
+    private final int frameSpacing = 1; // espacio entre frames en el sprite sheet
 
     private Timer animationTimer;
 
-    public PeaShooterDrawing(PeaShooter peaShooter) {
-        this.peaShooter = peaShooter;
-        setBounds(peaShooter.getX(), peaShooter.getY(), peaShooter.getWidth(), peaShooter.getHeight());
+    public SnowPeaShooterDrawing(SnowPeaShooter snowPeaShooter) {
+        this.snowPeaShooter = snowPeaShooter;
+        setBounds(snowPeaShooter.getX(), snowPeaShooter.getY(), snowPeaShooter.getWidth(), snowPeaShooter.getHeight());
 
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("PeashooterSprites.png")) {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("SnowPeaShooterSprites.png")) {
             spriteSheet = ImageIO.read(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -45,7 +45,7 @@ public class PeaShooterDrawing extends JComponent {
     }
 
     public String getId() {
-        return peaShooter.getId();
+        return snowPeaShooter.getId();
     }
 
     @Override
@@ -53,14 +53,14 @@ public class PeaShooterDrawing extends JComponent {
         super.paintComponent(g);
 
         if (spriteSheet != null) {
-            int spriteStartX = 170 + (frame * (frameWidth + frameSpacing));
+            int spriteStartX = 187 + (frame * (frameWidth + frameSpacing));
             int spriteStartY = 13;
 
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(
                     spriteSheet,
-                    0, 0, getWidth(), getHeight(), // destino escalado
-                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight, // recorte del frame
+                    0, 0, getWidth(), getHeight(), // destino escalado al tamaño de la planta
+                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight, // recorte del sprite
                     this
             );
         }
