@@ -59,8 +59,8 @@ public class PeaShooterDrawing extends JComponent {
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(
                     spriteSheet,
-                    0, 0, getWidth(), getHeight(), // destino escalado
-                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight, // recorte del frame
+                    0, 0, getWidth(), getHeight(),
+                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight,
                     this
             );
         }

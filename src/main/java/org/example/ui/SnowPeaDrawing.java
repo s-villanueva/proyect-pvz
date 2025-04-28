@@ -23,9 +23,7 @@ public class SnowPeaDrawing extends JComponent {
         try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("SnowPeaProjectile.png")) {
             if (inputStream != null) {
                 sprite = ImageIO.read(inputStream);
-                rescaleSprite(); // Reescalar de una vez
-            } else {
-                System.err.println("No se encontró la imagen ProjectilePea.png");
+                rescaleSprite();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,7 +46,6 @@ public class SnowPeaDrawing extends JComponent {
             g2d.drawImage(sprite, 0, 0, scaledWidth, scaledHeight, null);
             g2d.dispose();
 
-            // También actualizamos el tamaño del componente para que encaje
             setSize(scaledWidth, scaledHeight);
             setBounds(snowPea.getX(), snowPea.getY(), scaledWidth, scaledHeight);
         }

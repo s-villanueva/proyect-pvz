@@ -5,6 +5,7 @@ import org.example.logic.IGameEvents;
 import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
+import org.example.model.attack.Sun;
 import org.example.model.plant.*;
 
 import javax.swing.*;
@@ -16,7 +17,8 @@ import java.awt.event.MouseEvent;
 
 public class Frame extends JFrame implements IGameEvents {
     private Game game;
-    private JLabel floatingPreview = new JLabel();
+    private JLabel sunCounterLabel;
+    private MenuPanel menuPanel;
 
     public Frame() {
         setTitle("Plantas vs Zombies");
@@ -27,8 +29,8 @@ public class Frame extends JFrame implements IGameEvents {
         game = new Game(this);
 
         // Menú de selección de plantas
-        MenuPanel menuPanel = new MenuPanel("SelectionMenu.png"); // tu imagen en resources
-        menuPanel.setBounds(90, 0, 700, 80); // ubica el panel arriba del todo
+        menuPanel = new MenuPanel("SelectionMenu.png");
+        menuPanel.setBounds(90, 0, 700, 80);
 
         JButton sunFlowerButton = new JButton(new ImageIcon("SunflowerSeed.png"));
         sunFlowerButton.setContentAreaFilled(false);
@@ -37,7 +39,6 @@ public class Frame extends JFrame implements IGameEvents {
             int dummyX = 0, dummyY = 0;
             game.selectPlant(new SunFlower(dummyX, dummyY, 40, 60));
         });
-        menuPanel.add(sunFlowerButton);
 
         JButton peaShooterButton = new JButton(new ImageIcon("PeaShooterSeed.png"));
         peaShooterButton.setContentAreaFilled(false);
@@ -47,8 +48,6 @@ public class Frame extends JFrame implements IGameEvents {
             game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
         });
 
-        menuPanel.add(peaShooterButton);
-
         JButton wallNutButton = new JButton(new ImageIcon("WallNutSeed.png"));
         wallNutButton.setContentAreaFilled(false);
         wallNutButton.setPreferredSize(new Dimension(60, 60));
@@ -56,8 +55,6 @@ public class Frame extends JFrame implements IGameEvents {
             int dummyX = 0, dummyY = 0;
             game.selectPlant(new WallNut(dummyX, dummyY, 50, 60));
         });
-
-        menuPanel.add(wallNutButton);
 
         JButton cherryBombButton = new JButton(new ImageIcon("CherryBombButton.png"));
         cherryBombButton.setContentAreaFilled(false);
@@ -67,8 +64,6 @@ public class Frame extends JFrame implements IGameEvents {
             game.selectPlant(new CherryBomb(dummyX, dummyY, 50, 60, this));
         });
 
-        menuPanel.add(cherryBombButton);
-
         JButton snowPeaShooterButton = new JButton(new ImageIcon("SnowPeaShooterSeed.png"));
         snowPeaShooterButton.setContentAreaFilled(false);
         snowPeaShooterButton.setPreferredSize(new Dimension(60, 60));
@@ -77,21 +72,19 @@ public class Frame extends JFrame implements IGameEvents {
             game.selectPlant(new SnowPeaShooter(dummyX, dummyY, 50, 70));
         });
 
+        menuPanel.add(sunFlowerButton);
+        menuPanel.add(peaShooterButton);
+        menuPanel.add(wallNutButton);
+        menuPanel.add(cherryBombButton);
         menuPanel.add(snowPeaShooterButton);
 
         add(menuPanel);
 
-
-        // Crear una instancia de Background
         Background background = new Background();
-        background.setBounds(0, 0, getWidth(), getHeight()+20);
+        background.setBounds(0, 0, getWidth(), getHeight() + 20);
         background.setBounds(0, 0, getWidth(), getHeight());
         background.setGame(game);
         add(background);
-
-        floatingPreview.setSize(60, 60); // tamaño default
-        floatingPreview.setVisible(false);
-        add(floatingPreview, 0);
 
         // Agregar el listener de mouse para agregar plantas
         background.addMouseListener(new MouseAdapter() {
@@ -113,13 +106,11 @@ public class Frame extends JFrame implements IGameEvents {
                     selected.setY(y);
 
                     game.addPlant(row, col, selected);
-                    game.selectPlant(null); // deselecciona
+                    game.selectPlant(null);
                 }
             }
         });
 
-
-        // Resto de hilos para animaciones...
         new Thread(() -> {
             while (true) {
                 game.reviewPlants();
@@ -132,7 +123,21 @@ public class Frame extends JFrame implements IGameEvents {
             }
         }).start();
 
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(12000);
+                    game.generateSun();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
         setVisible(true);
+
+
     }
 
     @Override
@@ -142,16 +147,17 @@ public class Frame extends JFrame implements IGameEvents {
             drawing = new PeaShooterDrawing(ps);
         } else if (p instanceof SunFlower sf) {
             drawing = new SunFlowerDrawing(sf);
-        } else if (p instanceof WallNut wn) {  // Añadimos WallNut
-            drawing = new WallNutDrawing(wn);  // Usamos el dibujo de WallNut
-        } else if (p instanceof  CherryBomb cb) {
+        } else if (p instanceof WallNut wn) {
+            drawing = new WallNutDrawing(wn);
+        } else if (p instanceof CherryBomb cb) {
             drawing = new CherryBombDrawing(cb);
         } else if (p instanceof SnowPeaShooter sps) {
             drawing = new SnowPeaShooterDrawing(sps);
         }
+
         if (drawing != null) {
-            getContentPane().add(drawing, 0);  // Añadir la planta al panel
-            drawing.repaint();  // Redibujamos para mostrarla
+            getContentPane().add(drawing, 0);
+            drawing.repaint();
         }
     }
 
@@ -162,6 +168,7 @@ public class Frame extends JFrame implements IGameEvents {
             GreenPeaDrawing pd = new GreenPeaDrawing(greenPea);
             getContentPane().add(pd, 0);
             pd.repaint();
+
         } else if (attack instanceof SnowPea snowPea) {
             SnowPeaDrawing spd = new SnowPeaDrawing(snowPea);
             getContentPane().add(spd, 0);
@@ -185,6 +192,7 @@ public class Frame extends JFrame implements IGameEvents {
         Component c = getComponentById(id);
         if (c != null) {
             getContentPane().remove(c);
+            getContentPane().repaint();
         }
     }
 
@@ -223,6 +231,25 @@ public class Frame extends JFrame implements IGameEvents {
         timer.start();  // Comienza la animación de la explosión
     }
 
+    @Override
+    public void addSunUI(Sun s) {
+        SunDrawing sd = new SunDrawing(s);
+        getContentPane().add(sd, 0);
+        sd.repaint();
+        sd.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                game.collectSun(s.getId());
+                getContentPane().remove(sd);
+                repaint();
+            }
+        });
+    }
+
+    @Override
+    public void updateSunCounter(int suns) {
+        menuPanel.setSuns(suns);
+    }
 
     public Component getComponentById(String id) {
         for (Component c : getContentPane().getComponents()) {
@@ -230,12 +257,12 @@ public class Frame extends JFrame implements IGameEvents {
                 return pd;
             } else if (c instanceof SnowPeaDrawing spd && spd.getId().equals(id)) {
                 return spd;
+            } else if (c instanceof SunDrawing sd && sd.getId().equals(id)) {
+                return sd;
             }
         }
         return null;
     }
-
-
 
 
     public static void main(String[] args) {

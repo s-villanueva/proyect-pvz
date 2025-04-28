@@ -1,6 +1,7 @@
 package org.example.logic;
 
 import org.example.model.attack.Attack;
+import org.example.model.attack.Sun;
 import org.example.model.plant.CherryBomb;
 import org.example.model.plant.Plant;
 
@@ -13,6 +14,10 @@ import org.example.model.plant.Plant;
 public interface IGameEvents {
 
     void addPlantUI(Plant plant);
+
+    void addSunUI(Sun sun);
+
+    void updateSunCounter(int suns);
 
     void throwAttackUI(Attack attack);
 

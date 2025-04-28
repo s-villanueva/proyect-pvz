@@ -11,6 +11,7 @@ public class MenuPanel extends JPanel {
     private BufferedImage[] seedImages; // Semillas a pintar
     private final int seedSize = 60;
     private final int padding = 10;
+    private int suns = 0;
 
     public MenuPanel(String imagePath) {
         try {
@@ -45,6 +46,12 @@ public class MenuPanel extends JPanel {
         }
     }
 
+    public void setSuns(int suns) {
+        this.suns = suns;
+        repaint();
+    }
+
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -65,5 +72,22 @@ public class MenuPanel extends JPanel {
                 }
             }
         }
+
+        // Dibujar el contador de soles
+        g.setFont(new Font("TimesNewRoman", Font.BOLD, 24));
+        g.setColor(Color.BLACK);
+
+// Medir ancho del texto
+        FontMetrics fm = g.getFontMetrics();
+        String sunText = Integer.toString(suns);
+        int textWidth = fm.stringWidth(sunText);
+
+// Coordenadas del centro donde quieres que siempre esté
+        int centerX = 59; // Puedes ajustar este número
+        int centerY = 75;
+
+// Dibujar el texto centrado
+        g.drawString(sunText, centerX - textWidth / 2, centerY);
+
     }
 }

@@ -19,7 +19,7 @@ public class SnowPeaShooterDrawing extends JComponent {
     private final int totalFrames = 8;
     private final int frameWidth = 31;
     private final int frameHeight = 32;
-    private final int frameSpacing = 1; // espacio entre frames en el sprite sheet
+    private final int frameSpacing = 1;
 
     private Timer animationTimer;
 
@@ -59,8 +59,8 @@ public class SnowPeaShooterDrawing extends JComponent {
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(
                     spriteSheet,
-                    0, 0, getWidth(), getHeight(), // destino escalado al tamaño de la planta
-                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight, // recorte del sprite
+                    0, 0, getWidth(), getHeight(),
+                    spriteStartX, spriteStartY, spriteStartX + frameWidth, spriteStartY + frameHeight,
                     this
             );
         }

@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
+import org.example.model.attack.Sun;
 import org.example.model.plant.*;
 
 import javax.swing.*;
@@ -20,10 +21,11 @@ public class Game {
     public static final int CHERRY_BOMB_WIDTH = 60; // Define el tamaño de la CherryBomb
     public static final int CHERRY_BOMB_HEIGHT = 60;
 
+    private final IGameEvents iGameEvents;
     private int posStartX = 0;
     private int posStartY = 0;
     private int accumulatedSuns = 0;
-    private boolean[][] plantsInBoard;
+    private final boolean[][] plantsInBoard;
 
     @Getter
     private final List<Plant> availablePlants;
@@ -31,8 +33,8 @@ public class Game {
     private final List<Plant> plants;
     @Getter
     private final List<Attack> attacks;
-
-    private final IGameEvents iGameEvents;
+    @Getter
+    private final List<Sun> suns = Collections.synchronizedList(new ArrayList<>());
 
     public Game(IGameEvents iGameEvents) {
         this.availablePlants = new ArrayList<>(); // editable desde un solo hilo, usualmente
@@ -42,7 +44,6 @@ public class Game {
         this.posStartX = 100;
         this.posStartY = 100;
         this.plantsInBoard = new boolean[5][9];
-
     }
 
     public void addPlant(int row, int col, Plant plant) {
@@ -56,10 +57,8 @@ public class Game {
     }
 
     public void deletePlant(Plant plant) {
-        // Eliminar la planta de la lista de plantas
         plants.remove(plant);
-
-        // Liberar el espacio en el tablero
+        
         synchronized (plantsInBoard) {
             int row = (plant.getY() - posStartY) / plant.getHeight();
             int col = (plant.getX() - posStartX) / plant.getWidth();
@@ -67,11 +66,8 @@ public class Game {
                 plantsInBoard[row][col] = false;
             }
         }
-
-        // Eliminar la planta de la interfaz de usuario
         iGameEvents.deleteComponentUI(plant.getId());
     }
-
 
     public void reviewPlants() {
         long currentTime = System.currentTimeMillis();
@@ -87,18 +83,12 @@ public class Game {
                     iGameEvents.throwAttackUI(p);
                 }
             } else if (plant instanceof CherryBomb cb) {
-                // Revisar si la CherryBomb debe explotar
                 if (!cb.isExploded() && (currentTime - cb.getPrevTime() >= cb.getExplosionTime())) {
-                    cb.explode();  // Llamamos a la explosión de la CherryBomb
-                    iGameEvents.explosionUI(cb);  // Actualizamos la UI para mostrar la explosión
-
-                    // Programamos la eliminación de la CherryBomb después de la explosión
-                    // Suponemos que la explosión dura 1 segundo (1000 ms)
+                    cb.explode(); 
+                    iGameEvents.explosionUI(cb);  
                     Timer timer = new Timer(1000, e -> {
-                        // Primero eliminamos la planta de la lista de plantas
                         plants.remove(cb);
 
-                        // Luego, marcamos la celda correspondiente como vacía
                         synchronized (plantsInBoard) {
                             int row = (cb.getY() - posStartY) / CHERRY_BOMB_HEIGHT;
                             int col = (cb.getX() - posStartX) / CHERRY_BOMB_WIDTH;
@@ -106,11 +96,8 @@ public class Game {
                                 plantsInBoard[row][col] = false;
                             }
                         }
-
-                        // Actualizamos la interfaz de usuario eliminando el componente
-                        iGameEvents.deleteComponentUI(cb.getId());  // Eliminar de la UI
+                        iGameEvents.deleteComponentUI(cb.getId());
                     });
-
                     timer.setRepeats(false);
                     timer.start();
                 }
@@ -195,6 +182,40 @@ public class Game {
         SnowPea sp = new SnowPea(x, y, PEA_WIDTH, PEA_HEIGHT);
         sp.setMaxXToDied(800);
         return sp;
+    }
+
+    public void generateSun() {
+        int randomCol = (int) (Math.random() * 9);
+        int randomRow = (int) (Math.random() * 5);
+
+        int x = 100 + randomCol * 100;
+        int y = 100 + randomRow * 120;
+
+        Sun sun = new Sun(x, y, 60, 60);
+        suns.add(sun);
+        iGameEvents.addSunUI(sun); // para que aparezca el dibujo en el Frame
+
+        // Aquí programamos que se borre solo después de 4 segundos
+        new Thread(() -> {
+            try {
+                Thread.sleep(4000); // espera 4 segundos
+                if (suns.contains(sun)) {
+                    suns.remove(sun); // lo eliminamos del modelo
+                    iGameEvents.deleteComponentUI(sun.getId()); // eliminamos su imagen
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+
+    public void collectSun(String id) {
+        synchronized (suns) {
+            suns.removeIf(s -> s.getId().equals(id));
+            accumulatedSuns += 25;
+            iGameEvents.updateSunCounter(accumulatedSuns);
+        }
     }
 
 
