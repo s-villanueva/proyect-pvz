@@ -11,7 +11,7 @@ public class MenuPanel extends JPanel {
     private BufferedImage[] seedImages; // Semillas a pintar
     private final int seedSize = 60;
     private final int padding = 10;
-    private int suns = 0;
+    private int suns = 50;
 
     public MenuPanel(String imagePath) {
         try {

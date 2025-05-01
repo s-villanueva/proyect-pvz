@@ -4,6 +4,7 @@ import org.example.model.attack.Attack;
 import org.example.model.attack.Sun;
 import org.example.model.plant.CherryBomb;
 import org.example.model.plant.Plant;
+import org.example.model.zombie.Zombie;
 
 /**
  * IEventosShapes
@@ -29,4 +30,11 @@ public interface IGameEvents {
 
     void explosionUI(CherryBomb cherryBomb); // Método para mostrar la explosión
 
+    void spawnZombieUI(Zombie z);
+
+    void updateZombiePositionUI(String id);
+
+    void removeZombieUI(String id);
+
+    void addZombieUI(Zombie z);
 }

@@ -3,12 +3,6 @@ package org.example.model.plant;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Plant
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 @Getter
 @Setter
 public class Plant {

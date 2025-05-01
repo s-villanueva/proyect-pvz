@@ -5,28 +5,39 @@ import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
 import org.example.model.attack.Sun;
-import org.example.model.plant.*;
+import org.example.model.plant.CherryBomb;
+import org.example.model.plant.PeaShooter;
+import org.example.model.plant.Plant;
+import org.example.model.plant.SnowPeaShooter;
+import org.example.model.zombie.Zombie;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Game {
+    // Constantes de dimensiones de las plantas y ataques
     public static final int PEA_SHOOTER_WIDTH = 50;
     public static final int PEA_SHOOTER_HEIGHT = 70;
     public static final int PEA_WIDTH = 20;
     public static final int PEA_HEIGHT = 20;
-    public static final int CHERRY_BOMB_WIDTH = 60; // Define el tamaño de la CherryBomb
+    public static final int CHERRY_BOMB_WIDTH = 60;
     public static final int CHERRY_BOMB_HEIGHT = 60;
 
+    @Getter
     private final IGameEvents iGameEvents;
+
+    // Variables para la posición de inicio
     private int posStartX = 0;
     private int posStartY = 0;
-    private int accumulatedSuns = 0;
-    private final boolean[][] plantsInBoard;
 
+    // Acumulación de soles
+    private int accumulatedSuns = 50;
+
+    // Listas de plantas, ataques, soles y zombis
     @Getter
     private final List<Plant> availablePlants;
     @Getter
@@ -35,30 +46,42 @@ public class Game {
     private final List<Attack> attacks;
     @Getter
     private final List<Sun> suns = Collections.synchronizedList(new ArrayList<>());
+    @Getter
+    private final List<Zombie> zombies = Collections.synchronizedList(new ArrayList<>());
+
+    // Matrices para las plantas y zombis en el tablero
+    private final boolean[][] plantsInBoard = new boolean[5][9];
+    private final boolean[][] zombiesInBoard = new boolean[5][1];  // Solo una columna por ahora para los zombis
+
+    @Getter
+    private volatile Plant selectedPlant = null;
 
     public Game(IGameEvents iGameEvents) {
-        this.availablePlants = new ArrayList<>(); // editable desde un solo hilo, usualmente
+        this.availablePlants = new ArrayList<>();
         this.plants = new CopyOnWriteArrayList<>();
         this.attacks = Collections.synchronizedList(new ArrayList<>());
         this.iGameEvents = iGameEvents;
         this.posStartX = 100;
         this.posStartY = 100;
-        this.plantsInBoard = new boolean[5][9];
     }
 
+    // --- Métodos para manejar las plantas ---
+
+    // Agregar planta al tablero
     public void addPlant(int row, int col, Plant plant) {
         if (row < 0 || row >= 5 || col < 0 || col >= 9) return;
         synchronized (plantsInBoard) {
-            if (plantsInBoard[row][col]) return;
+            if (plantsInBoard[row][col]) return;  // Si ya hay una planta en la casilla, no agregar otra
             plantsInBoard[row][col] = true;
         }
         plants.add(plant);
-        iGameEvents.addPlantUI(plant);
+        iGameEvents.addPlantUI(plant);  // Actualizar la interfaz de usuario
     }
 
+    // Eliminar planta
     public void deletePlant(Plant plant) {
-        plants.remove(plant);
-        
+         plants.remove(plant);
+
         synchronized (plantsInBoard) {
             int row = (plant.getY() - posStartY) / plant.getHeight();
             int col = (plant.getX() - posStartX) / plant.getWidth();
@@ -69,6 +92,58 @@ public class Game {
         iGameEvents.deleteComponentUI(plant.getId());
     }
 
+    // --- Métodos para manejar los zombis ---
+
+    // Eliminar zombi
+    public void removeZombie(Zombie zombie) {
+        zombies.remove(zombie);
+
+        synchronized (zombiesInBoard) {
+            int row = (zombie.getY() - posStartY) / zombie.getHeight();
+            if (row >= 0 && row < 5) {
+                zombiesInBoard[row][0] = false;  // Solo hay una columna para los zombis
+            }
+        }
+
+        iGameEvents.deleteComponentUI(zombie.getId());
+    }
+
+    // Agregar zombi
+    public void addZombie(Zombie z) {
+        zombies.add(z);
+        for (int row = 0; row < 5; row++) {
+            if (!zombiesInBoard[row][0]) {
+                zombiesInBoard[row][0] = true;
+                break;
+            }
+        }
+        iGameEvents.addZombieUI(z);
+    }
+
+    // Revisión de zombis, avance de los mismos
+    public void reviewZombies() {
+        synchronized (zombies) {
+            Iterator<Zombie> iterator = zombies.iterator(); // Sincronización al crear el iterador
+
+            while (iterator.hasNext()) {
+                Zombie zombie = iterator.next();
+                zombie.advance();
+
+                // Actualización de la posición del zombi en la UI
+                iGameEvents.updatePositionUI(zombie.getId());
+
+                // Si el zombi ha llegado al final (X <= 0), se elimina
+                if (zombie.getX() <= 0) {
+                    iterator.remove();  // Eliminar el zombi de la lista de zombies
+                    iGameEvents.deleteComponentUI(zombie.getId());
+                }
+            }
+        }
+    }
+
+    // --- Métodos para manejar los ataques ---
+
+    // Revisión de plantas, generación de ataques
     public void reviewPlants() {
         long currentTime = System.currentTimeMillis();
 
@@ -84,8 +159,8 @@ public class Game {
                 }
             } else if (plant instanceof CherryBomb cb) {
                 if (!cb.isExploded() && (currentTime - cb.getPrevTime() >= cb.getExplosionTime())) {
-                    cb.explode(); 
-                    iGameEvents.explosionUI(cb);  
+                    cb.explode();
+                    iGameEvents.explosionUI(cb);
                     Timer timer = new Timer(1000, e -> {
                         plants.remove(cb);
 
@@ -101,7 +176,6 @@ public class Game {
                     timer.setRepeats(false);
                     timer.start();
                 }
-
             } else if (plant instanceof SnowPeaShooter sps) {
                 if (currentTime - sps.getPrevTime() > sps.getAttackTime()) {
                     sps.setPrevTime(currentTime);
@@ -112,27 +186,10 @@ public class Game {
                     iGameEvents.throwAttackUI(sp);
                 }
             }
-
         }
     }
 
-    public void damagePlant(Plant plant, int damage) {
-        if (plant instanceof WallNut wn) {
-            wn.takeDamage(damage);
-            if (wn.isDead()) {
-                plants.remove(wn);
-                synchronized (plantsInBoard) {
-                    int row = (wn.getY() - posStartY) / PEA_SHOOTER_HEIGHT;
-                    int col = (wn.getX() - posStartX) / PEA_SHOOTER_WIDTH;
-                    if (row >= 0 && row < 5 && col >= 0 && col < 9) {
-                        plantsInBoard[row][col] = false;
-                    }
-                }
-                iGameEvents.deleteComponentUI(wn.getId());
-            }
-        }
-    }
-
+    // Revisión de los ataques, movimiento de las bolas
     public void reviewAttacks() {
         long currentTime = System.currentTimeMillis();
         List<Attack> toRemove = new ArrayList<>();
@@ -162,12 +219,12 @@ public class Game {
                         sp.setPrevTime(currentTime);
                     }
                 }
-
             }
             attacks.removeAll(toRemove);
         }
     }
 
+    // Generación de GreenPea
     private GreenPea newGreenPea(PeaShooter plant) {
         int x = plant.getX() + plant.getWidth();
         int y = plant.getY() + (PEA_SHOOTER_HEIGHT / 4) - (PEA_WIDTH / 2) + 4;
@@ -176,6 +233,7 @@ public class Game {
         return gp;
     }
 
+    // Generación de SnowPea
     private SnowPea newSnowPea(SnowPeaShooter plant) {
         int x = plant.getX() + plant.getWidth();
         int y = plant.getY() + (PEA_SHOOTER_HEIGHT / 4) - (PEA_WIDTH / 2) + 4;
@@ -184,6 +242,9 @@ public class Game {
         return sp;
     }
 
+    // --- Métodos para manejar los soles ---
+
+    // Generación de Sol
     public void generateSun() {
         int randomCol = (int) (Math.random() * 9);
         int randomRow = (int) (Math.random() * 5);
@@ -193,15 +254,15 @@ public class Game {
 
         Sun sun = new Sun(x, y, 60, 60);
         suns.add(sun);
-        iGameEvents.addSunUI(sun); // para que aparezca el dibujo en el Frame
+        iGameEvents.addSunUI(sun);
 
-        // Aquí programamos que se borre solo después de 4 segundos
+        // Eliminar el sol después de 4 segundos
         new Thread(() -> {
             try {
-                Thread.sleep(4000); // espera 4 segundos
+                Thread.sleep(4000);
                 if (suns.contains(sun)) {
-                    suns.remove(sun); // lo eliminamos del modelo
-                    iGameEvents.deleteComponentUI(sun.getId()); // eliminamos su imagen
+                    suns.remove(sun);
+                    iGameEvents.deleteComponentUI(sun.getId());
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -209,7 +270,7 @@ public class Game {
         }).start();
     }
 
-
+    // Método para recolectar el sol
     public void collectSun(String id) {
         synchronized (suns) {
             suns.removeIf(s -> s.getId().equals(id));
@@ -218,12 +279,8 @@ public class Game {
         }
     }
 
-
-    @Getter
-    private volatile Plant selectedPlant = null;
-
+    // Selección de planta
     public void selectPlant(Plant plant) {
         this.selectedPlant = plant;
     }
-
 }

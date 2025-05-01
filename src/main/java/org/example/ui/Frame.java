@@ -7,6 +7,8 @@ import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
 import org.example.model.attack.Sun;
 import org.example.model.plant.*;
+import org.example.model.zombie.BasicZombie;
+import org.example.model.zombie.Zombie;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,11 +16,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Random;
 
 public class Frame extends JFrame implements IGameEvents {
-    private Game game;
+    private final Game game;
     private JLabel sunCounterLabel;
-    private MenuPanel menuPanel;
+    private final MenuPanel menuPanel;
 
     public Frame() {
         setTitle("Plantas vs Zombies");
@@ -28,65 +31,53 @@ public class Frame extends JFrame implements IGameEvents {
 
         game = new Game(this);
 
-        // Menú de selección de plantas
+        // Crear y configurar el panel de menú
         menuPanel = new MenuPanel("SelectionMenu.png");
         menuPanel.setBounds(90, 0, 700, 80);
+        configureMenuButtons();
+        add(menuPanel);
 
-        JButton sunFlowerButton = new JButton(new ImageIcon("SunflowerSeed.png"));
-        sunFlowerButton.setContentAreaFilled(false);
-        sunFlowerButton.setPreferredSize(new Dimension(60, 60));
-        sunFlowerButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new SunFlower(dummyX, dummyY, 40, 60));
-        });
+        // Configurar el fondo
+        Background background = new Background();
+        background.setBounds(0, 0, getWidth(), getHeight());
+        background.setGame(game);
+        add(background);
 
-        JButton peaShooterButton = new JButton(new ImageIcon("PeaShooterSeed.png"));
-        peaShooterButton.setContentAreaFilled(false);
-        peaShooterButton.setPreferredSize(new Dimension(60, 60));
-        peaShooterButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new PeaShooter(dummyX, dummyY, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT));
-        });
+        // Agregar listener de mouse para colocar plantas
+        configureMouseListener(background);
 
-        JButton wallNutButton = new JButton(new ImageIcon("WallNutSeed.png"));
-        wallNutButton.setContentAreaFilled(false);
-        wallNutButton.setPreferredSize(new Dimension(60, 60));
-        wallNutButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new WallNut(dummyX, dummyY, 50, 60));
-        });
+        // Iniciar hilos para generar zombis, revisar estado de plantas y ataques, y generar soles
+        startGameThreads();
 
-        JButton cherryBombButton = new JButton(new ImageIcon("CherryBombButton.png"));
-        cherryBombButton.setContentAreaFilled(false);
-        cherryBombButton.setPreferredSize(new Dimension(60, 60));
-        cherryBombButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new CherryBomb(dummyX, dummyY, 50, 60, this));
-        });
+        setVisible(true);
+    }
 
-        JButton snowPeaShooterButton = new JButton(new ImageIcon("SnowPeaShooterSeed.png"));
-        snowPeaShooterButton.setContentAreaFilled(false);
-        snowPeaShooterButton.setPreferredSize(new Dimension(60, 60));
-        snowPeaShooterButton.addActionListener(e -> {
-            int dummyX = 0, dummyY = 0;
-            game.selectPlant(new SnowPeaShooter(dummyX, dummyY, 50, 70));
-        });
+    private void configureMenuButtons() {
+        // Crear botones para las plantas
+        JButton sunFlowerButton = createPlantButton("SunflowerSeed.png", e -> game.selectPlant(new SunFlower(0, 0, 40, 60)));
+        JButton peaShooterButton = createPlantButton("PeaShooterSeed.png", e -> game.selectPlant(new PeaShooter(0, 0, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT)));
+        JButton wallNutButton = createPlantButton("WallNutSeed.png", e -> game.selectPlant(new WallNut(0, 0, 50, 60)));
+        JButton cherryBombButton = createPlantButton("CherryBombButton.png", e -> game.selectPlant(new CherryBomb(0, 0, 50, 60, this)));
+        JButton snowPeaShooterButton = createPlantButton("SnowPeaShooterSeed.png", e -> game.selectPlant(new SnowPeaShooter(0, 0, 50, 70)));
 
+        // Añadir botones al panel
         menuPanel.add(sunFlowerButton);
         menuPanel.add(peaShooterButton);
         menuPanel.add(wallNutButton);
         menuPanel.add(cherryBombButton);
         menuPanel.add(snowPeaShooterButton);
+    }
 
-        add(menuPanel);
+    private JButton createPlantButton(String imagePath, ActionListener listener) {
+        JButton button = new JButton(new ImageIcon(imagePath));
+        button.setContentAreaFilled(false);
+        button.setPreferredSize(new Dimension(60, 60));
+        button.addActionListener(listener);
+        return button;
+    }
 
-        Background background = new Background();
-        background.setBounds(0, 0, getWidth(), getHeight() + 20);
-        background.setBounds(0, 0, getWidth(), getHeight());
-        background.setGame(game);
-        add(background);
-
-        // Agregar el listener de mouse para agregar plantas
+    private void configureMouseListener(Background background) {
+        // Agregar listener para añadir plantas en el campo de juego
         background.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -110,11 +101,29 @@ public class Frame extends JFrame implements IGameEvents {
                 }
             }
         });
+    }
 
+    private void startGameThreads() {
+        // Generar zombis periódicamente
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000); // cada 5 segundos
+                    int row = new Random().nextInt(5);
+                    int y = 100 + row * 120 + 10;
+                    game.addZombie(new BasicZombie(900, y, row, game));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        // Revisar plantas, ataques y zombis
         new Thread(() -> {
             while (true) {
                 game.reviewPlants();
                 game.reviewAttacks();
+                game.reviewZombies();
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -123,6 +132,7 @@ public class Frame extends JFrame implements IGameEvents {
             }
         }).start();
 
+        // Generar soles cada 12 segundos
         new Thread(() -> {
             while (true) {
                 try {
@@ -134,11 +144,23 @@ public class Frame extends JFrame implements IGameEvents {
             }
         }).start();
 
-
-        setVisible(true);
-
-
+        // Generar zombis cada 15 segundos
+        new Thread(() -> {
+            Random rand = new Random();
+            while (true) {
+                try {
+                    Thread.sleep(15000);
+                    int row = rand.nextInt(5);
+                    Zombie z = new BasicZombie(800, 100, row, game);
+                    game.addZombie(z);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
+
+    // Métodos de la interfaz IGameEvents
 
     @Override
     public void addPlantUI(Plant p) {
@@ -161,21 +183,18 @@ public class Frame extends JFrame implements IGameEvents {
         }
     }
 
-
     @Override
     public void throwAttackUI(Attack attack) {
         if (attack instanceof GreenPea greenPea) {
             GreenPeaDrawing pd = new GreenPeaDrawing(greenPea);
             getContentPane().add(pd, 0);
             pd.repaint();
-
         } else if (attack instanceof SnowPea snowPea) {
             SnowPeaDrawing spd = new SnowPeaDrawing(snowPea);
             getContentPane().add(spd, 0);
             spd.repaint();
         }
     }
-
 
     @Override
     public void updatePositionUI(String id) {
@@ -184,6 +203,8 @@ public class Frame extends JFrame implements IGameEvents {
             pd.updatePosition();
         } else if (c instanceof SnowPeaDrawing sps) {
             sps.updatePosition();
+        } else if (c instanceof ZombieDrawing zd) {
+            zd.updatePosition();
         }
     }
 
@@ -203,32 +224,28 @@ public class Frame extends JFrame implements IGameEvents {
 
     @Override
     public void explosionUI(CherryBomb cherryBomb) {
-        CherryBombDrawing cbDrawing = new CherryBombDrawing(cherryBomb);  // Crear el dibujo de la CherryBomb
-        getContentPane().add(cbDrawing, 0);  // Añadir el dibujo al contenedor de la ventana
-        cbDrawing.repaint();  // Redibujar para mostrar la explosión
+        CherryBombDrawing cbDrawing = new CherryBombDrawing(cherryBomb);
+        getContentPane().add(cbDrawing, 0);
+        cbDrawing.repaint();
 
-        // Mostrar la animación de la explosión
+        // Animación de la explosión
         Timer timer = new Timer(100, new ActionListener() {
             int explosionFrame = 0;
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (explosionFrame == 0) {
-                    // Iniciar la animación de la explosión
-                    cbDrawing.setExplosion(true);  // Iniciar la animación de explosión
+                    cbDrawing.setExplosion(true);
                     cbDrawing.repaint();
                     explosionFrame++;
                 } else if (explosionFrame == 1) {
-                    // Eliminar el dibujo después de que la explosión ha terminado
-                    getContentPane().remove(cbDrawing);  // Quitar el dibujo de la explosión
-                    getContentPane().repaint();  // Redibujar la ventana
-
-                    // Detener el temporizador después de 1 segundo (asumimos que el GIF dura 1 segundo)
-                    ((Timer) e.getSource()).stop();  // Detener el temporizador
+                    getContentPane().remove(cbDrawing);
+                    getContentPane().repaint();
+                    ((Timer) e.getSource()).stop();
                 }
             }
         });
-        timer.start();  // Comienza la animación de la explosión
+        timer.start();
     }
 
     @Override
@@ -259,11 +276,40 @@ public class Frame extends JFrame implements IGameEvents {
                 return spd;
             } else if (c instanceof SunDrawing sd && sd.getId().equals(id)) {
                 return sd;
+            } else if (c instanceof ZombieDrawing zd && zd.getId().equals(id)) {
+                return zd;
             }
         }
         return null;
     }
 
+    @Override
+    public void spawnZombieUI(Zombie z) {
+        ZombieDrawing zd = new ZombieDrawing(z);
+        getContentPane().add(zd, 0);
+        zd.repaint();
+    }
+
+    @Override
+    public void updateZombiePositionUI(String id) {
+        // Implementación si es necesario
+    }
+
+    @Override
+    public void removeZombieUI(String id) {
+        Component c = getComponentById(id);
+        if (c != null) {
+            getContentPane().remove(c);
+            getContentPane().repaint();
+        }
+    }
+
+    @Override
+    public void addZombieUI(Zombie z) {
+        ZombieDrawing zd = new ZombieDrawing(z);
+        getContentPane().add(zd, 0);
+        zd.repaint();
+    }
 
     public static void main(String[] args) {
         new Frame();
