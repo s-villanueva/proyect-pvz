@@ -25,4 +25,6 @@ public class Bomb extends Attack {
         this.height = height;
     }
 
+    public Bomb() {
+    }
 }

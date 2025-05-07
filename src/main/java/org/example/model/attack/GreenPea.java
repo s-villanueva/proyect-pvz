@@ -27,6 +27,7 @@ public class GreenPea extends Attack {
         this.width = width;
         this.height = height;
         this.prevTime = System.currentTimeMillis();
+        this.attack = 20;
     }
 
     public void avanzar() {

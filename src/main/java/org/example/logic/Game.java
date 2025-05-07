@@ -5,18 +5,15 @@ import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
 import org.example.model.attack.Sun;
-import org.example.model.plant.CherryBomb;
-import org.example.model.plant.PeaShooter;
-import org.example.model.plant.Plant;
-import org.example.model.plant.SnowPeaShooter;
+import org.example.model.plant.*;
 import org.example.model.zombie.Zombie;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 
 public class Game {
     // Constantes de dimensiones de las plantas y ataques
@@ -69,14 +66,32 @@ public class Game {
 
     // Agregar planta al tablero
     public void addPlant(int row, int col, Plant plant) {
-        if (row < 0 || row >= 5 || col < 0 || col >= 9) return;
+        if (plant == null || row < 0 || row >= 5 || col < 0 || col >= 9) return;
+
+        // Verificar si hay suficientes soles para la planta seleccionada
+        int plantCost = plant.getSunCost();  // Asegúrate de que Plant tenga un método getCost()
+
         synchronized (plantsInBoard) {
-            if (plantsInBoard[row][col]) return;  // Si ya hay una planta en la casilla, no agregar otra
-            plantsInBoard[row][col] = true;
+            if (plantsInBoard[row][col]) {
+                selectedPlant = null;  // Deseleccionar si la celda está ocupada
+                return;
+            }
         }
-        plants.add(plant);
-        iGameEvents.addPlantUI(plant);  // Actualizar la interfaz de usuario
+
+        if (accumulatedSuns >= plantCost) {
+            accumulatedSuns -= plantCost;
+            plants.add(plant);
+            synchronized (plantsInBoard) {
+                plantsInBoard[row][col] = true;
+            }
+            iGameEvents.addPlantUI(plant);
+            iGameEvents.updateSunCounter(accumulatedSuns);  // Actualizar contador en la UI
+        } else {
+            // No hay soles suficientes: deseleccionar la planta
+            selectedPlant = null;
+        }
     }
+
 
     // Eliminar planta
     public void deletePlant(Plant plant) {
@@ -123,18 +138,20 @@ public class Game {
     // Revisión de zombis, avance de los mismos
     public void reviewZombies() {
         synchronized (zombies) {
-            Iterator<Zombie> iterator = zombies.iterator(); // Sincronización al crear el iterador
+            Iterator<Zombie> iterator = zombies.iterator();
 
             while (iterator.hasNext()) {
                 Zombie zombie = iterator.next();
-                zombie.advance();
 
-                // Actualización de la posición del zombi en la UI
+                // El zombi maneja su lógica interna de ataque o avance
+                zombie.tryToAttackPlant(plants);
+
+                // Actualizar la posición (por si avanzó)
                 iGameEvents.updatePositionUI(zombie.getId());
 
-                // Si el zombi ha llegado al final (X <= 0), se elimina
+                // Si llegó al borde izquierdo
                 if (zombie.getX() <= 0) {
-                    iterator.remove();  // Eliminar el zombi de la lista de zombies
+                    iterator.remove();
                     iGameEvents.deleteComponentUI(zombie.getId());
                 }
             }
@@ -157,25 +174,26 @@ public class Game {
                     }
                     iGameEvents.throwAttackUI(p);
                 }
-            } else if (plant instanceof CherryBomb cb) {
-                if (!cb.isExploded() && (currentTime - cb.getPrevTime() >= cb.getExplosionTime())) {
-                    cb.explode();
-                    iGameEvents.explosionUI(cb);
-                    Timer timer = new Timer(1000, e -> {
-                        plants.remove(cb);
 
-                        synchronized (plantsInBoard) {
-                            int row = (cb.getY() - posStartY) / CHERRY_BOMB_HEIGHT;
-                            int col = (cb.getX() - posStartX) / CHERRY_BOMB_WIDTH;
-                            if (row >= 0 && row < 5 && col >= 0 && col < 9) {
-                                plantsInBoard[row][col] = false;
-                            }
-                        }
-                        iGameEvents.deleteComponentUI(cb.getId());
-                    });
-                    timer.setRepeats(false);
-                    timer.start();
-                }
+//            } else if (plant instanceof CherryBomb cb) {
+//                if (!cb.isExploded() && (currentTime - cb.getPrevTime() >= cb.getExplosionTime())) {
+//                    cb.explode();
+//                    iGameEvents.explosionUI(cb);
+//                    Timer timer = new Timer(1000, e -> {
+//                        plants.remove(cb);
+//
+//                        synchronized (plantsInBoard) {
+//                            int row = (cb.getY() - posStartY) / CHERRY_BOMB_HEIGHT;
+//                            int col = (cb.getX() - posStartX) / CHERRY_BOMB_WIDTH;
+//                            if (row >= 0 && row < 5 && col >= 0 && col < 9) {
+//                                plantsInBoard[row][col] = false;
+//                            }
+//                        }
+//                        iGameEvents.deleteComponentUI(cb.getId());
+//                    });
+//                    timer.setRepeats(false);
+//                    timer.start();
+//                }
             } else if (plant instanceof SnowPeaShooter sps) {
                 if (currentTime - sps.getPrevTime() > sps.getAttackTime()) {
                     sps.setPrevTime(currentTime);
@@ -184,6 +202,31 @@ public class Game {
                         attacks.add(sp);
                     }
                     iGameEvents.throwAttackUI(sp);
+                }
+            }
+            else if (plant instanceof SunFlower sf) {
+                if (currentTime - sf.getPrevTime() >= sf.getSunProductionInterval()) {
+                    sf.setPrevTime(currentTime);
+                    // Generar un sol en la posición del girasol
+                    Sun sun = new Sun(sf.getX(), sf.getY(), 60, 60);
+                    suns.add(sun);
+                    System.out.println("le solesito");
+                    iGameEvents.addSunUI(sun);
+
+                    // Eliminar el sol después de 4 segundos
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(8000);
+                            synchronized (suns) {
+                                if (suns.contains(sun)) {
+                                    suns.remove(sun);
+                                    iGameEvents.deleteComponentUI(sun.getId());
+                                }
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
                 }
             }
         }
@@ -196,25 +239,61 @@ public class Game {
 
         synchronized (attacks) {
             for (Attack attack : attacks) {
+                boolean collided = false;
+
                 if (attack instanceof GreenPea gp) {
                     if (currentTime - gp.getPrevTime() > gp.getAdvanceTime()) {
                         gp.avanzar();
-                        if (gp.getX() > gp.getMaxXToDied()) {
-                            toRemove.add(attack);
-                            iGameEvents.deleteComponentUI(attack.getId());
-                        } else {
-                            iGameEvents.updatePositionUI(gp.getId());
+
+                        for (Zombie zombie : zombies) {
+                            int attackRow = (attack.getY() - posStartY) / 120;
+                            int zombieRow = (zombie.getY() - posStartY) / 120;
+
+                            if (attackRow == zombieRow && intersects(attack, zombie)) {
+                                zombie.takeDamage(attack.getAttack());
+                                toRemove.add(attack);
+                                iGameEvents.deleteComponentUI(attack.getId());
+                                collided = true;
+                                break;
+                            }
+                        }
+
+
+                        if (!collided) {
+                            if (gp.getX() > gp.getMaxXToDied()) {
+                                toRemove.add(gp);
+                                iGameEvents.deleteComponentUI(gp.getId());
+                            } else {
+                                iGameEvents.updatePositionUI(gp.getId());
+                            }
                         }
                         gp.setPrevTime(currentTime);
                     }
                 } else if (attack instanceof SnowPea sp) {
                     if (currentTime - sp.getPrevTime() > sp.getAdvanceTime()) {
                         sp.avanzar();
-                        if (sp.getX() > sp.getMaxXToDied()) {
-                            toRemove.add(attack);
-                            iGameEvents.deleteComponentUI(attack.getId());
-                        } else {
-                            iGameEvents.updatePositionUI(sp.getId());
+
+                        for (Zombie zombie : zombies) {
+                            int attackRow = (attack.getY() - posStartY) / 120;
+                            int zombieRow = (zombie.getY() - posStartY) / 120;
+
+                            if (attackRow == zombieRow && intersects(attack, zombie)) {
+                                zombie.takeDamage(attack.getAttack());
+                                toRemove.add(attack);
+                                iGameEvents.deleteComponentUI(attack.getId());
+                                collided = true;
+                                break;
+                            }
+                        }
+
+
+                        if (!collided) {
+                            if (sp.getX() > sp.getMaxXToDied()) {
+                                toRemove.add(sp);
+                                iGameEvents.deleteComponentUI(sp.getId());
+                            } else {
+                                iGameEvents.updatePositionUI(sp.getId());
+                            }
                         }
                         sp.setPrevTime(currentTime);
                     }
@@ -223,6 +302,14 @@ public class Game {
             attacks.removeAll(toRemove);
         }
     }
+
+    private boolean intersects(Attack attack, Zombie zombie) {
+        return attack.getX() < zombie.getX() + zombie.getWidth() &&
+                attack.getX() + attack.getWidth() > zombie.getX() &&
+                attack.getY() < zombie.getY() + zombie.getHeight() &&
+                attack.getY() + attack.getHeight() > zombie.getY();
+    }
+
 
     // Generación de GreenPea
     private GreenPea newGreenPea(PeaShooter plant) {

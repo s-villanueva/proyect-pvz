@@ -18,6 +18,7 @@ public class PeaShooter extends Plant {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.sunCost = 100;
         this.prevTime = System.currentTimeMillis();
     }
 

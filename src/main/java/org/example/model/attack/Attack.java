@@ -3,12 +3,6 @@ package org.example.model.attack;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Attack
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 @Getter
 @Setter
 public class Attack {
@@ -18,4 +12,8 @@ public class Attack {
     protected int width;
     protected int height;
     protected int attack;
+
+    public int getDamage(int dmg) {
+        return dmg; // o el valor correspondiente
+    }
 }

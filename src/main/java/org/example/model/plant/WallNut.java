@@ -16,6 +16,7 @@ public class WallNut extends Plant {
         this.width = width;
         this.height = height;
         this.maxHealth = 300; // Ejemplo de salud inicial
+        this.sunCost = 50;
         this.health = maxHealth;
     }
 

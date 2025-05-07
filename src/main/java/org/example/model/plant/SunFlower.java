@@ -11,6 +11,7 @@ public class SunFlower extends Plant {
 
     private int sunTime = 22000; // 22000ms = 22seg
     private long prevTime;
+    private long sunProductionInterval = 7000; // cada 7 segundos
 
     public SunFlower(int x, int y, int width, int height) {
         this.id = UUID.randomUUID().toString();
@@ -18,6 +19,7 @@ public class SunFlower extends Plant {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.sunCost = 50;
         this.prevTime = System.currentTimeMillis();
     }
 

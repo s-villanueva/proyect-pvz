@@ -23,9 +23,12 @@ public class SnowPea extends Attack {
         this.width = width;
         this.height = height;
         this.prevTime = System.currentTimeMillis();
+        this.attack = 25;
     }
 
     public void avanzar() {
         x = x + 4; // avanza igual que el GreenPea
     }
+
+
 }

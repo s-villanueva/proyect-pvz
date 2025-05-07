@@ -20,6 +20,7 @@ public class SnowPeaShooter extends Plant {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.sunCost = 175;
         this.prevTime = System.currentTimeMillis();
     }
 

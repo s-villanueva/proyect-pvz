@@ -57,14 +57,14 @@ public class Frame extends JFrame implements IGameEvents {
         JButton sunFlowerButton = createPlantButton("SunflowerSeed.png", e -> game.selectPlant(new SunFlower(0, 0, 40, 60)));
         JButton peaShooterButton = createPlantButton("PeaShooterSeed.png", e -> game.selectPlant(new PeaShooter(0, 0, Game.PEA_SHOOTER_WIDTH, Game.PEA_SHOOTER_HEIGHT)));
         JButton wallNutButton = createPlantButton("WallNutSeed.png", e -> game.selectPlant(new WallNut(0, 0, 50, 60)));
-        JButton cherryBombButton = createPlantButton("CherryBombButton.png", e -> game.selectPlant(new CherryBomb(0, 0, 50, 60, this)));
+//        JButton cherryBombButton = createPlantButton("CherryBombButton.png", e -> game.selectPlant(new CherryBomb(0, 0, 50, 60, this)));
         JButton snowPeaShooterButton = createPlantButton("SnowPeaShooterSeed.png", e -> game.selectPlant(new SnowPeaShooter(0, 0, 50, 70)));
 
         // Añadir botones al panel
         menuPanel.add(sunFlowerButton);
         menuPanel.add(peaShooterButton);
         menuPanel.add(wallNutButton);
-        menuPanel.add(cherryBombButton);
+//        menuPanel.add(cherryBombButton);
         menuPanel.add(snowPeaShooterButton);
     }
 
@@ -171,8 +171,8 @@ public class Frame extends JFrame implements IGameEvents {
             drawing = new SunFlowerDrawing(sf);
         } else if (p instanceof WallNut wn) {
             drawing = new WallNutDrawing(wn);
-        } else if (p instanceof CherryBomb cb) {
-            drawing = new CherryBombDrawing(cb);
+//        } else if (p instanceof CherryBomb cb) {
+//            drawing = new CherryBombDrawing(cb);
         } else if (p instanceof SnowPeaShooter sps) {
             drawing = new SnowPeaShooterDrawing(sps);
         }
