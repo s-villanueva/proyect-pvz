@@ -14,7 +14,7 @@ import java.io.InputStream;
  * WallNutDrawing animado y escalado
  */
 @Getter
-public class WallNutDrawing extends JComponent {
+public class WallNutDrawing extends JComponent implements IComponentID{
     private BufferedImage spriteSheet;
     private BufferedImage[] frames;
     private int currentFrame = 0;

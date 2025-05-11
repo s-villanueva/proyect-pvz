@@ -10,8 +10,8 @@ public class BasicZombie extends Zombie {
 
     @Override
     public void advance() {
-        if (getState() == ZombieState.IN_PROGRESS) {
-            setX(getX()-1);
+        if (!isAttacking()) {
+            setX(getX()-getSpeed()); // o el valor de velocidad
         }
     }
 

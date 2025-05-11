@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class CherryBombDrawing extends JComponent {
+public class CherryBombDrawing extends JComponent implements IComponentID{
     private BufferedImage bi;
 
     private CherryBomb cherryBomb;

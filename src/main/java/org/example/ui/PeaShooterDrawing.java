@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class PeaShooterDrawing extends JComponent {
+public class PeaShooterDrawing extends JComponent implements IComponentID{
     private BufferedImage spriteSheet;
     private PeaShooter peaShooter;
 
@@ -34,6 +34,11 @@ public class PeaShooterDrawing extends JComponent {
         }
 
         startAnimation();
+    }
+
+    public void updatePosition() {
+        setLocation(peaShooter.getX(), peaShooter.getY());
+        repaint();
     }
 
     private void startAnimation() {

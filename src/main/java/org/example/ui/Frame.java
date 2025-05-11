@@ -8,6 +8,7 @@ import org.example.model.attack.SnowPea;
 import org.example.model.attack.Sun;
 import org.example.model.plant.*;
 import org.example.model.zombie.BasicZombie;
+import org.example.model.zombie.ConeheadZombie;
 import org.example.model.zombie.Zombie;
 
 import javax.swing.*;
@@ -95,6 +96,8 @@ public class Frame extends JFrame implements IGameEvents {
 
                     selected.setX(x);
                     selected.setY(y);
+                    selected.setRow(row);
+                    selected.setCol(col);
 
                     game.addPlant(row, col, selected);
                     game.selectPlant(null);
@@ -117,6 +120,21 @@ public class Frame extends JFrame implements IGameEvents {
                 }
             }
         }).start();
+
+        // Generar zombis periódicamente
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(25000); // cada 5 segundos
+                    int row = new Random().nextInt(5);
+                    int y = 100 + row * 120 + 10;
+                    game.addZombie(new ConeheadZombie(900, y, row, game));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
 
         // Revisar plantas, ataques y zombis
         new Thread(() -> {
@@ -144,20 +162,6 @@ public class Frame extends JFrame implements IGameEvents {
             }
         }).start();
 
-        // Generar zombis cada 15 segundos
-        new Thread(() -> {
-            Random rand = new Random();
-            while (true) {
-                try {
-                    Thread.sleep(15000);
-                    int row = rand.nextInt(5);
-                    Zombie z = new BasicZombie(800, 100, row, game);
-                    game.addZombie(z);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 
     // Métodos de la interfaz IGameEvents
@@ -176,7 +180,6 @@ public class Frame extends JFrame implements IGameEvents {
         } else if (p instanceof SnowPeaShooter sps) {
             drawing = new SnowPeaShooterDrawing(sps);
         }
-
         if (drawing != null) {
             getContentPane().add(drawing, 0);
             drawing.repaint();
@@ -205,6 +208,8 @@ public class Frame extends JFrame implements IGameEvents {
             sps.updatePosition();
         } else if (c instanceof ZombieDrawing zd) {
             zd.updatePosition();
+        } else if (c instanceof ConeheadZombieDrawing cnz) {
+            cnz.updatePosition();
         }
     }
 
@@ -213,14 +218,19 @@ public class Frame extends JFrame implements IGameEvents {
         Component c = getComponentById(id);
         if (c != null) {
             getContentPane().remove(c);
+            getContentPane().revalidate();
             getContentPane().repaint();
         }
     }
 
-    @Override
-    public void updateHealthUI(int id, int health) {
-
+    public void removePlantUI(Plant p) {
+        Component c = getComponentById(p.getId());
+        if (c != null) {
+            getContentPane().remove(c);
+        }
     }
+
+
 
     @Override
     public void explosionUI(CherryBomb cherryBomb) {
@@ -278,21 +288,11 @@ public class Frame extends JFrame implements IGameEvents {
                 return sd;
             } else if (c instanceof ZombieDrawing zd && zd.getId().equals(id)) {
                 return zd;
+            } else if (c instanceof ConeheadZombieDrawing chz && chz.getId().equals(id)) {
+                return chz;
             }
         }
         return null;
-    }
-
-    @Override
-    public void spawnZombieUI(Zombie z) {
-        ZombieDrawing zd = new ZombieDrawing(z);
-        getContentPane().add(zd, 0);
-        zd.repaint();
-    }
-
-    @Override
-    public void updateZombiePositionUI(String id) {
-        // Implementación si es necesario
     }
 
     @Override
@@ -306,9 +306,19 @@ public class Frame extends JFrame implements IGameEvents {
 
     @Override
     public void addZombieUI(Zombie z) {
-        ZombieDrawing zd = new ZombieDrawing(z);
-        getContentPane().add(zd, 0);
-        zd.repaint();
+        JComponent drawing;
+        if (z instanceof ConeheadZombie cz) {
+            drawing = new ConeheadZombieDrawing(cz);
+        } else {
+            drawing = new ZombieDrawing(z);
+        }
+        getContentPane().add(drawing, 0);
+        drawing.repaint();
+    }
+
+    @Override
+    public void updateZombieSprite(String id, boolean coneIntact) {
+
     }
 
     public static void main(String[] args) {

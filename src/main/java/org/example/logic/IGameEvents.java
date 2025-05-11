@@ -26,13 +26,13 @@ public interface IGameEvents {
 
     void deleteComponentUI(String id);
 
-    void updateHealthUI(int id, int health);  // Mostrar salud de una planta (en este caso la Nuez)
+    void updateZombieSprite(String id, boolean coneIntact);
+
+    void removePlantUI(Plant plant);
+
+//    void changeZombieToNormal(String id);
 
     void explosionUI(CherryBomb cherryBomb); // Método para mostrar la explosión
-
-    void spawnZombieUI(Zombie z);
-
-    void updateZombiePositionUI(String id);
 
     void removeZombieUI(String id);
 

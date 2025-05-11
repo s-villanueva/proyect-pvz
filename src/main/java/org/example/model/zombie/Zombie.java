@@ -2,29 +2,24 @@ package org.example.model.zombie;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.example.logic.IGameEvents;
 import org.example.model.Entity;
 import org.example.logic.Game;
 import org.example.model.plant.Plant;
 
 import java.awt.*;
 import java.util.List;
-
+@Getter
+@Setter
 public abstract class Zombie extends Entity {
-    @Getter
-    @Setter
     private int health;
     private int speed;
     private int row;
-    @Getter
-    @Setter
     private ZombieState state;
-    @Getter
     private Game game;
-    @Getter
-    @Setter
     private long lastAttackTime = 0;
-    @Getter
-    @Setter
+    private boolean attacking = false;
+    private final int attackDamage = 15;
     private final long attackCooldown = 1000; // 1 segundo entre ataques
 
 
@@ -39,41 +34,27 @@ public abstract class Zombie extends Entity {
 
     public abstract void advance();
 
-    public void tryToAttackPlant(List<Plant> plants) {
-        for (Plant plant : plants) {
-            if (plant.getY() == this.getY()) { // misma fila
-                if (isColliding(plant)) {
-                    long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastAttackTime >= attackCooldown) {
-                        System.out.println("atta");
-                        plant.takeDamage(20); // o el valor que desees
-                        lastAttackTime = currentTime;
-                    }
-                    return; // Ya está atacando, no avanza
-                }
-            }
+    public int getCol() {
+        return (getRow() - 100) / 100;
+    }
+
+    private boolean intersects(Zombie z, Plant p) {
+        return z.getX() < p.getX() + p.getWidth() &&
+                z.getX() + z.getWidth() > p.getX() &&
+                z.getY() < p.getY() + p.getHeight() &&
+                z.getY() + z.getHeight() > p.getY();
+    }
+
+    public void attackPlant(Plant plant) {
+        long now = System.currentTimeMillis();
+        if (now - lastAttackTime >= attackCooldown) {
+            plant.takeDamage(attackDamage);
+            lastAttackTime = now;
         }
-
-        // Si no colisiona con ninguna planta, avanza normalmente
-        advance();
+        if(plant.isDead()){
+            game.removePlant(plant);
+        }
     }
-
-    private boolean isColliding(Plant plant) {
-        int zombieLeft = this.getX();
-        int zombieRight = this.getX() + this.getWidth();
-        int zombieTop = this.getY();
-        int zombieBottom = this.getY() + this.getHeight();
-
-        int plantLeft = plant.getX();
-        int plantRight = plant.getX() + plant.getWidth();
-        int plantTop = plant.getY();
-        int plantBottom = plant.getY() + plant.getHeight();
-
-        // Verifica si hay colisión (intersección de rectángulos)
-        return zombieRight > plantLeft && zombieLeft < plantRight &&
-                zombieBottom > plantTop && zombieTop < plantBottom;
-    }
-
 
 
     public void takeDamage(int damage) {
@@ -87,6 +68,10 @@ public abstract class Zombie extends Entity {
         return this.health > 0;
     }
 
+    public boolean isDead() {
+        return health <= 0;
+    }
+
     public void die() {
         if (state == ZombieState.IN_PROGRESS) {
             setState(ZombieState.WAITING);
@@ -96,10 +81,5 @@ public abstract class Zombie extends Entity {
             }
         }
     }
-
-    public Rectangle getBounds() {
-        return new Rectangle(getX(), getY(), getWidth(), getHeight());
-    }
-
 
 }

@@ -5,7 +5,7 @@ import org.example.model.plant.CherryBomb;
 import javax.swing.*;
 import java.awt.*;
 
-public class PowExplosionDrawing extends JComponent {
+public class PowExplosionDrawing extends JComponent implements IComponentID{
     private final CherryBomb cherryBomb;
     private int powFrame = 0; // Para la animación del Pow
     private final int powFrames = 5; // Número de frames de la animación del Pow
@@ -15,7 +15,7 @@ public class PowExplosionDrawing extends JComponent {
         this.cherryBomb = cherryBomb;
         this.prevTime = System.currentTimeMillis();
     }
-
+    public String getId() {return getId();}
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

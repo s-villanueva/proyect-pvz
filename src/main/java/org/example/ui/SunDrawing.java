@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class SunDrawing extends JComponent {
+public class SunDrawing extends JComponent implements IComponentID{
     private BufferedImage bi;
     private Sun sun;
 

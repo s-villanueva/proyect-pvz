@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class SunFlowerDrawing extends JComponent {
+public class SunFlowerDrawing extends JComponent implements IComponentID{
     private BufferedImage spriteSheet;
     private BufferedImage[] frames;
     private int currentFrame = 0;

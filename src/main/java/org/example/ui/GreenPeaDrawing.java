@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class GreenPeaDrawing extends JComponent {
+public class GreenPeaDrawing extends JComponent implements IComponentID {
     private GreenPea greenPea;
     private BufferedImage bi;
 

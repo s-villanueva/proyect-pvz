@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Getter
-public class SnowPeaDrawing extends JComponent {
+public class SnowPeaDrawing extends JComponent implements IComponentID {
     private SnowPea snowPea;
     private BufferedImage sprite;
     private BufferedImage scaledSprite;

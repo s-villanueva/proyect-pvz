@@ -1,11 +1,13 @@
 package org.example.logic;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.example.model.attack.Attack;
 import org.example.model.attack.GreenPea;
 import org.example.model.attack.SnowPea;
 import org.example.model.attack.Sun;
 import org.example.model.plant.*;
+import org.example.model.zombie.ConeheadZombie;
 import org.example.model.zombie.Zombie;
 
 import java.util.ArrayList;
@@ -14,7 +16,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
+@Getter
+@Setter
 public class Game {
     // Constantes de dimensiones de las plantas y ataques
     public static final int PEA_SHOOTER_WIDTH = 50;
@@ -23,8 +26,6 @@ public class Game {
     public static final int PEA_HEIGHT = 20;
     public static final int CHERRY_BOMB_WIDTH = 60;
     public static final int CHERRY_BOMB_HEIGHT = 60;
-
-    @Getter
     private final IGameEvents iGameEvents;
 
     // Variables para la posición de inicio
@@ -35,22 +36,21 @@ public class Game {
     private int accumulatedSuns = 50;
 
     // Listas de plantas, ataques, soles y zombis
-    @Getter
+
     private final List<Plant> availablePlants;
-    @Getter
+
     private final List<Plant> plants;
-    @Getter
+
     private final List<Attack> attacks;
-    @Getter
+
     private final List<Sun> suns = Collections.synchronizedList(new ArrayList<>());
-    @Getter
+
     private final List<Zombie> zombies = Collections.synchronizedList(new ArrayList<>());
 
     // Matrices para las plantas y zombis en el tablero
-    private final boolean[][] plantsInBoard = new boolean[5][9];
-    private final boolean[][] zombiesInBoard = new boolean[5][1];  // Solo una columna por ahora para los zombis
+    private boolean[][] plantsInBoard = new boolean[5][9];
+    private boolean[][] zombiesInBoard = new boolean[5][1];  // Solo una columna por ahora para los zombis
 
-    @Getter
     private volatile Plant selectedPlant = null;
 
     public Game(IGameEvents iGameEvents) {
@@ -93,9 +93,8 @@ public class Game {
     }
 
 
-    // Eliminar planta
-    public void deletePlant(Plant plant) {
-         plants.remove(plant);
+    public void removePlant(Plant plant) {
+        plants.remove(plant);
 
         synchronized (plantsInBoard) {
             int row = (plant.getY() - posStartY) / plant.getHeight();
@@ -104,8 +103,10 @@ public class Game {
                 plantsInBoard[row][col] = false;
             }
         }
+
         iGameEvents.deleteComponentUI(plant.getId());
     }
+
 
     // --- Métodos para manejar los zombis ---
 
@@ -138,25 +139,46 @@ public class Game {
     // Revisión de zombis, avance de los mismos
     public void reviewZombies() {
         synchronized (zombies) {
-            Iterator<Zombie> iterator = zombies.iterator();
+            Iterator<Zombie> it = zombies.iterator();
+            while (it.hasNext()) {
+                Zombie z = it.next();
 
-            while (iterator.hasNext()) {
-                Zombie zombie = iterator.next();
+                boolean collided = false;
+                for (Plant plant : plants) {
+                    if (intersects(plant, z)) {
+                        z.attackPlant(plant);
+                        collided = true;
+                        break;
+                    }
+                }
 
-                // El zombi maneja su lógica interna de ataque o avance
-                zombie.tryToAttackPlant(plants);
+                if (!collided) {
+                    z.advance();
+                    iGameEvents.updatePositionUI(z.getId());
 
-                // Actualizar la posición (por si avanzó)
-                iGameEvents.updatePositionUI(zombie.getId());
+                    // Verifica si es ConeheadZombie y actualiza la animación si perdió el cono
+                    if (z instanceof ConeheadZombie coneZombie) {
+                        if (!coneZombie.isConeIntact()) {
+//                            iGameEvents.updateZombieSprite(z.getId()); // Cambiar animación en UI
+                        }
+                    }
+                }
 
-                // Si llegó al borde izquierdo
-                if (zombie.getX() <= 0) {
-                    iterator.remove();
-                    iGameEvents.deleteComponentUI(zombie.getId());
+                if (z.isDead()) {
+                    iGameEvents.removeZombieUI(z.getId());
+                    it.remove();
+                }
+
+                if (z.getX() <= 0) {
+                    it.remove();
+                    iGameEvents.deleteComponentUI(z.getId());
                 }
             }
         }
     }
+
+
+
 
     // --- Métodos para manejar los ataques ---
 
@@ -165,6 +187,9 @@ public class Game {
         long currentTime = System.currentTimeMillis();
 
         for (Plant plant : plants) {
+            if (plant.isDead()){
+                iGameEvents.deleteComponentUI(plant.getId());
+            }
             if (plant instanceof PeaShooter ps) {
                 if (currentTime - ps.getPrevTime() > ps.getAttackTime()) {
                     ps.setPrevTime(currentTime);
@@ -210,7 +235,6 @@ public class Game {
                     // Generar un sol en la posición del girasol
                     Sun sun = new Sun(sf.getX(), sf.getY(), 60, 60);
                     suns.add(sun);
-                    System.out.println("le solesito");
                     iGameEvents.addSunUI(sun);
 
                     // Eliminar el sol después de 4 segundos
@@ -258,7 +282,6 @@ public class Game {
                             }
                         }
 
-
                         if (!collided) {
                             if (gp.getX() > gp.getMaxXToDied()) {
                                 toRemove.add(gp);
@@ -267,8 +290,10 @@ public class Game {
                                 iGameEvents.updatePositionUI(gp.getId());
                             }
                         }
+
                         gp.setPrevTime(currentTime);
                     }
+
                 } else if (attack instanceof SnowPea sp) {
                     if (currentTime - sp.getPrevTime() > sp.getAdvanceTime()) {
                         sp.avanzar();
@@ -285,7 +310,6 @@ public class Game {
                                 break;
                             }
                         }
-
 
                         if (!collided) {
                             if (sp.getX() > sp.getMaxXToDied()) {
@@ -310,8 +334,13 @@ public class Game {
                 attack.getY() + attack.getHeight() > zombie.getY();
     }
 
+    private boolean intersects(Plant plant, Zombie zombie) {
+        return plant.getX() < zombie.getX() + zombie.getWidth() &&
+                plant.getX() + plant.getWidth() > zombie.getX() &&
+                plant.getY() < zombie.getY() + zombie.getHeight() &&
+                plant.getY() + plant.getHeight() > zombie.getY();
+    }
 
-    // Generación de GreenPea
     private GreenPea newGreenPea(PeaShooter plant) {
         int x = plant.getX() + plant.getWidth();
         int y = plant.getY() + (PEA_SHOOTER_HEIGHT / 4) - (PEA_WIDTH / 2) + 4;
