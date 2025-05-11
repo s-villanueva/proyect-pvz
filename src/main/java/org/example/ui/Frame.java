@@ -2,12 +2,10 @@ package org.example.ui;
 
 import org.example.logic.Game;
 import org.example.logic.IGameEvents;
-import org.example.model.attack.Attack;
-import org.example.model.attack.GreenPea;
-import org.example.model.attack.SnowPea;
-import org.example.model.attack.Sun;
+import org.example.model.attack.*;
 import org.example.model.plant.*;
 import org.example.model.zombie.BasicZombie;
+import org.example.model.zombie.BucketheadZombie;
 import org.example.model.zombie.ConeheadZombie;
 import org.example.model.zombie.Zombie;
 
@@ -51,6 +49,7 @@ public class Frame extends JFrame implements IGameEvents {
         startGameThreads();
 
         setVisible(true);
+        addLawnMowers();
     }
 
     private void configureMenuButtons() {
@@ -129,6 +128,7 @@ public class Frame extends JFrame implements IGameEvents {
                     int row = new Random().nextInt(5);
                     int y = 100 + row * 120 + 10;
                     game.addZombie(new ConeheadZombie(900, y, row, game));
+                    game.addZombie(new BucketheadZombie(900, y, row, game));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -163,6 +163,15 @@ public class Frame extends JFrame implements IGameEvents {
         }).start();
 
     }
+
+    public void addLawnMowers() {
+        for (int i = 0; i < 5; i++) {
+            LawnMower mower = game.getLawnMowers()[i];
+            LawnMowerDrawing drawing = new LawnMowerDrawing(mower, i);
+            getContentPane().add(drawing, 0);
+        }
+    }
+
 
     // Métodos de la interfaz IGameEvents
 
@@ -210,7 +219,12 @@ public class Frame extends JFrame implements IGameEvents {
             zd.updatePosition();
         } else if (c instanceof ConeheadZombieDrawing cnz) {
             cnz.updatePosition();
+        } else if (c instanceof BucketheadZombieDrawing bhz){
+            bhz.updatePosition();
+        } else if (c instanceof LawnMowerDrawing lmd) {
+            lmd.updatePosition();
         }
+
     }
 
     @Override
@@ -230,6 +244,13 @@ public class Frame extends JFrame implements IGameEvents {
         }
     }
 
+    @Override
+    public void updateLawnMowerUI(int row) {
+        Component c = getLawnMowerByRow(row);
+        if (c instanceof LawnMowerDrawing lmd) {
+            lmd.updatePosition();
+        }
+    }
 
 
     @Override
@@ -290,7 +311,12 @@ public class Frame extends JFrame implements IGameEvents {
                 return zd;
             } else if (c instanceof ConeheadZombieDrawing chz && chz.getId().equals(id)) {
                 return chz;
+            } else if (c instanceof BucketheadZombieDrawing bhz && bhz.getId().equals(id)) {
+                return bhz;
+            } else if (c instanceof LawnMowerDrawing lmd && lmd.getId().equals(id)) {
+                return lmd;
             }
+
         }
         return null;
     }
@@ -309,12 +335,25 @@ public class Frame extends JFrame implements IGameEvents {
         JComponent drawing;
         if (z instanceof ConeheadZombie cz) {
             drawing = new ConeheadZombieDrawing(cz);
+        } else if (z instanceof BucketheadZombie bz) {
+            drawing = new BucketheadZombieDrawing(bz);
         } else {
             drawing = new ZombieDrawing(z);
         }
         getContentPane().add(drawing, 0);
         drawing.repaint();
     }
+
+
+    private Component getLawnMowerByRow(int row) {
+        for (Component c : getContentPane().getComponents()) {
+            if (c instanceof LawnMowerDrawing lmd && lmd.getRow() == row) {
+                return lmd;
+            }
+        }
+        return null;
+    }
+
 
     @Override
     public void updateZombieSprite(String id, boolean coneIntact) {

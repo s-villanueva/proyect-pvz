@@ -2,10 +2,7 @@ package org.example.logic;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.model.attack.Attack;
-import org.example.model.attack.GreenPea;
-import org.example.model.attack.SnowPea;
-import org.example.model.attack.Sun;
+import org.example.model.attack.*;
 import org.example.model.plant.*;
 import org.example.model.zombie.ConeheadZombie;
 import org.example.model.zombie.Zombie;
@@ -27,13 +24,14 @@ public class Game {
     public static final int CHERRY_BOMB_WIDTH = 60;
     public static final int CHERRY_BOMB_HEIGHT = 60;
     private final IGameEvents iGameEvents;
+    private LawnMower[] lawnMowers = new LawnMower[5];
 
     // Variables para la posición de inicio
     private int posStartX = 0;
     private int posStartY = 0;
 
     // Acumulación de soles
-    private int accumulatedSuns = 50;
+    private int accumulatedSuns = 5000;
 
     // Listas de plantas, ataques, soles y zombis
 
@@ -60,6 +58,9 @@ public class Game {
         this.iGameEvents = iGameEvents;
         this.posStartX = 100;
         this.posStartY = 100;
+        for (int i = 0; i < 5; i++) {
+            lawnMowers[i] = new LawnMower(70, 110 + i * 120 + 20, i,this);
+        }
     }
 
     // --- Métodos para manejar las plantas ---
@@ -138,13 +139,13 @@ public class Game {
 
     // Revisión de zombis, avance de los mismos
     public void reviewZombies() {
+        List<Zombie> zombiesToRemove = new ArrayList<>();
+
         synchronized (zombies) {
-            Iterator<Zombie> it = zombies.iterator();
-            while (it.hasNext()) {
-                Zombie z = it.next();
+            for (Zombie z : new ArrayList<>(zombies)) {
 
                 boolean collided = false;
-                for (Plant plant : plants) {
+                for (Plant plant : new ArrayList<>(plants)) {
                     if (intersects(plant, z)) {
                         z.attackPlant(plant);
                         collided = true;
@@ -156,24 +157,55 @@ public class Game {
                     z.advance();
                     iGameEvents.updatePositionUI(z.getId());
 
-                    // Verifica si es ConeheadZombie y actualiza la animación si perdió el cono
-                    if (z instanceof ConeheadZombie coneZombie) {
-                        if (!coneZombie.isConeIntact()) {
-//                            iGameEvents.updateZombieSprite(z.getId()); // Cambiar animación en UI
-                        }
+                    if (z instanceof ConeheadZombie coneZombie && !coneZombie.isConeIntact()) {
+//                        iGameEvents.changeZombieToNormal(z.getId());
                     }
                 }
 
                 if (z.isDead()) {
                     iGameEvents.removeZombieUI(z.getId());
-                    it.remove();
+                    zombiesToRemove.add(z);
+                    continue;
                 }
 
                 if (z.getX() <= 0) {
-                    it.remove();
                     iGameEvents.deleteComponentUI(z.getId());
+                    zombiesToRemove.add(z);
+                    continue;
+                }
+
+                if (lawnMowers[z.getRow()] != null) {
+                    LawnMower mower = lawnMowers[z.getRow()];
+                    if (!mower.isActive() && z.getX() <= mower.getX() + 30) {
+                        mower.setActive(true);
+                    }
                 }
             }
+
+            // Mover podadoras activas y matar zombis en su fila
+            for (int row = 0; row < lawnMowers.length; row++) {
+                LawnMower mower = lawnMowers[row];
+                if (mower == null)
+                    continue;
+                if (mower.isActive()) {
+                    mower.move();
+                    iGameEvents.updateLawnMowerUI(row);
+
+                    for (Zombie z : new ArrayList<>(zombies)) {
+                        if (z.getRow() == row && z.getX() <= mower.getX() + 60) {
+                            z.takeDamage(z.getHealth());
+                            iGameEvents.removeZombieUI(z.getId());
+                            zombiesToRemove.add(z);
+                        }
+                    }
+
+                    if (mower.getX() > 1000) {
+                        mower.setActive(false);
+                        lawnMowers[row] = null;
+                    }
+                }
+            }
+            zombies.removeAll(zombiesToRemove);
         }
     }
 

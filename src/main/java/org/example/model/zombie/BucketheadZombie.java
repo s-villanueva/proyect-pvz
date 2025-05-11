@@ -2,17 +2,17 @@ package org.example.model.zombie;
 
 import org.example.logic.Game;
 
-public class ConeheadZombie extends Zombie {
-    private boolean coneIntact = true;
+public class BucketheadZombie extends Zombie {
+    private boolean bucketIntact = true;
 
-    public ConeheadZombie(int x, int y, int row, Game game) {
-        super(x, y, 80, 100, row, game); // Usa mismo tamaño que BasicZombie
-        setHealth(200); // Salud total
+    public BucketheadZombie(int x, int y, int row, Game game) {
+        super(x, y, 80, 100, row, game); // Usa mismo tamaño que los otros zombis
+        setHealth(300); // Más salud por tener el balde
         setSpeed(1);    // Misma velocidad que básico
     }
 
-    public boolean isConeIntact() {
-        return coneIntact;
+    public boolean isBucketIntact() {
+        return bucketIntact;
     }
 
     @Override
@@ -44,12 +44,12 @@ public class ConeheadZombie extends Zombie {
     @Override
     public void takeDamage(int damage) {
         setHealth(getHealth() - damage);
-        if (coneIntact && getHealth() <= 100) {
-            coneIntact = false;
-            // Opcional: cambiar sprite visual al perder el cono
+        if (bucketIntact && getHealth() <= 100) {
+            bucketIntact = false;
+            // Opcional: cambiar sprite visual al perder el balde
             Game game = getGame();
 //            if (game != null) {
-//                game.getIGameEvents().updateZombieSprite(getId(),coneIntact);
+//                game.getIGameEvents().updateZombieSprite(getId(), bucketIntact);
 //            }
         }
     }

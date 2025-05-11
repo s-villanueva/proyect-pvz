@@ -1,6 +1,7 @@
 package org.example.logic;
 
 import org.example.model.attack.Attack;
+import org.example.model.attack.LawnMower;
 import org.example.model.attack.Sun;
 import org.example.model.plant.CherryBomb;
 import org.example.model.plant.Plant;
@@ -31,6 +32,8 @@ public interface IGameEvents {
     void removePlantUI(Plant plant);
 
 //    void changeZombieToNormal(String id);
+
+    void updateLawnMowerUI(int row);
 
     void explosionUI(CherryBomb cherryBomb); // Método para mostrar la explosión
 
