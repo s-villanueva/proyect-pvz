@@ -6,12 +6,6 @@ import lombok.ToString;
 
 import java.util.UUID;
 
-/**
- * GreenPea
- *
- * @author Marcos Quispe
- * @since 1.0
- */
 @Getter
 @Setter
 @ToString

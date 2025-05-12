@@ -19,11 +19,11 @@ public class ZombieDrawing extends JComponent implements IComponentID {
     private final int totalFrames = 7;
     private final int frameWidth = 44;
     private final int frameHeight = 58;
-    private final int spacing = 6; // Espacio horizontal entre frames
-    private final int yOffset = 57; // Desplazamiento vertical (ajusta según tu sprite)
-    private final int frameDelay = 150; // ms entre frames
+    private final int spacing = 6;
+    private final int yOffset = 57;
+    private final int frameDelay = 150;
 
-    private final double scale = 2; // ⬅️ ESCALA
+    private final double scale = 2;
 
     private Timer animationTimer;
 

@@ -33,10 +33,7 @@ public class ConeheadZombieDrawing extends JComponent implements IComponentID {
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
         }
-
-        // Crear instancia de ZombieDrawing con el mismo objeto zombi
         fallbackDrawing = new ZombieDrawing(zombie);
-
         startAnimation();
     }
 
@@ -56,12 +53,6 @@ public class ConeheadZombieDrawing extends JComponent implements IComponentID {
         animationTimer.start();
     }
 
-    public void stopAnimation() {
-        if (animationTimer != null) {
-            animationTimer.stop();
-        }
-    }
-
     public String getId() {
         return zombie.getId();
     }
@@ -71,7 +62,6 @@ public class ConeheadZombieDrawing extends JComponent implements IComponentID {
         super.paintComponent(g);
 
         if (!zombie.isConeIntact()) {
-            // Delegar a ZombieDrawing cuando no tiene cono
             fallbackDrawing.setBounds(0, 0, getWidth(), getHeight());
             fallbackDrawing.paintComponent(g);
             return;
@@ -79,12 +69,10 @@ public class ConeheadZombieDrawing extends JComponent implements IComponentID {
 
         if (spriteSheetConehead != null) {
             int spriteStartX = frame * (frameWidth + frameSpacing);
-
             BufferedImage frameImage = spriteSheetConehead.getSubimage(
                     spriteStartX, yOffset,
                     frameWidth, frameHeight
             );
-
             g.drawImage(frameImage, 0, 0, getWidth(), getHeight(), this);
         } else {
             g.setColor(Color.RED);

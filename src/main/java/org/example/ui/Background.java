@@ -19,7 +19,7 @@ public class Background extends JPanel {
     public Background() {
         InputStream inputStream = null;
         try {
-            inputStream = this.getClass().getClassLoader().getResourceAsStream("pvz-jardin-full.png"); // no funciona bien con webp
+            inputStream = this.getClass().getClassLoader().getResourceAsStream("pvz-jardin-full.png");
             bufferedImage = ImageIO.read(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,12 +38,10 @@ public class Background extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Cargar la imagen de fondo
         ImageIcon backgroundImage = new ImageIcon("pvz-jardin-full.png");
         System.out.println("Imagen cargada");
         Image img = backgroundImage.getImage();
 
-        // Dibujar la imagen de fondo
         g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
 
         int rows = 5;
@@ -51,7 +49,6 @@ public class Background extends JPanel {
         int cellWidth = 100;
         int cellHeight = 125;
 
-        // Dibujar la cuadrícula sobre el fondo
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 int x = col * cellWidth + 100;
@@ -65,10 +62,6 @@ public class Background extends JPanel {
 
     @Override
     public void paint(Graphics g) {
-        //super.paint(g);
-        Graphics2D g2d = (Graphics2D) g;
-
-        //g2d.drawImage(bufferedImage, 0, 0, getWidth(), getHeight(), this);
         g.drawImage(bufferedImage, 0, 0, getWidth(), getHeight()
                 , 175, 0
                 , 990, 570, this);

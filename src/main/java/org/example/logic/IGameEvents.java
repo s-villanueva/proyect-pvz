@@ -1,5 +1,6 @@
 package org.example.logic;
 
+import org.example.model.Audio.AudioName;
 import org.example.model.attack.Attack;
 import org.example.model.attack.LawnMower;
 import org.example.model.attack.Sun;
@@ -27,15 +28,9 @@ public interface IGameEvents {
 
     void deleteComponentUI(String id);
 
-    void updateZombieSprite(String id, boolean coneIntact);
-
-    void removePlantUI(Plant plant);
-
-//    void changeZombieToNormal(String id);
+    void playAudio (AudioName audioName);
 
     void updateLawnMowerUI(int row);
-
-    void explosionUI(CherryBomb cherryBomb); // Método para mostrar la explosión
 
     void removeZombieUI(String id);
 

@@ -1,8 +1,13 @@
 package org.example.model.zombie;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.example.logic.Game;
 
+@Getter
+@Setter
 public class ConeheadZombie extends Zombie {
+
     private boolean coneIntact = true;
 
     public ConeheadZombie(int x, int y, int row, Game game) {
@@ -17,10 +22,21 @@ public class ConeheadZombie extends Zombie {
 
     @Override
     public void advance() {
-        if (!isAttacking()) {
+        long now = System.currentTimeMillis();
+
+        boolean isFrozenNow = isFrozen() && now < getFrozenUntil();
+
+        long interval = isFrozenNow ? getMoveInterval() * 2 : getMoveInterval();
+
+        if (now - getLastAttackTime() >= interval) {
             setX(getX() - getSpeed());
+            setLastAttackTime(now);
+        }
+        if (isFrozen() && now >= getFrozenUntil()) {
+            setFrozen(false);
         }
     }
+
 
     @Override
     public void die() {
@@ -36,21 +52,22 @@ public class ConeheadZombie extends Zombie {
 
     @Override
     public void update() {
-        if (!isAlive()) {
+        if (isDead()) {
             die();
         }
     }
 
     @Override
-    public void takeDamage(int damage) {
-        setHealth(getHealth() - damage);
-        if (coneIntact && getHealth() <= 100) {
-            coneIntact = false;
-            // Opcional: cambiar sprite visual al perder el cono
-            Game game = getGame();
-//            if (game != null) {
-//                game.getIGameEvents().updateZombieSprite(getId(),coneIntact);
-//            }
+    public void takeDamage(int dmg) {
+        super.takeDamage(dmg);
+
+        if (isConeIntact() && getHealth() < 75) {
+            setConeIntact(false); // pierde el cono
+        }
+
+        if (!isArmLost() && getHealth() < 40) {
+            setArmLost(true); // pierde el brazo
         }
     }
+
 }

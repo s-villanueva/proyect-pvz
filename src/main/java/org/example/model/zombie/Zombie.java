@@ -16,11 +16,16 @@ public abstract class Zombie extends Entity {
     private int speed;
     private int row;
     private ZombieState state;
+    private long lastMoveTime = 0;
+    private long moveInterval = 100;
+    private boolean frozen = false;
+    private long frozenUntil = 0;
     private Game game;
     private long lastAttackTime = 0;
     private boolean attacking = false;
     private final int attackDamage = 15;
-    private final long attackCooldown = 1000; // 1 segundo entre ataques
+    private final long attackCooldown = 1000;
+    private boolean armLost = false;
 
 
     public Zombie(int x, int y, int width, int height, int row, Game game) {
@@ -34,38 +39,19 @@ public abstract class Zombie extends Entity {
 
     public abstract void advance();
 
-    public int getCol() {
-        return (getRow() - 100) / 100;
-    }
-
-    private boolean intersects(Zombie z, Plant p) {
-        return z.getX() < p.getX() + p.getWidth() &&
-                z.getX() + z.getWidth() > p.getX() &&
-                z.getY() < p.getY() + p.getHeight() &&
-                z.getY() + z.getHeight() > p.getY();
-    }
-
     public void attackPlant(Plant plant) {
         long now = System.currentTimeMillis();
         if (now - lastAttackTime >= attackCooldown) {
             plant.takeDamage(attackDamage);
             lastAttackTime = now;
         }
-        if(plant.isDead()){
-            game.removePlant(plant);
-        }
     }
-
 
     public void takeDamage(int damage) {
         this.health -= damage;
         if (this.health <= 0) {
             die();
         }
-    }
-
-    public boolean isAlive() {
-        return this.health > 0;
     }
 
     public boolean isDead() {

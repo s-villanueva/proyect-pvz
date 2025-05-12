@@ -12,8 +12,4 @@ public class Attack {
     protected int width;
     protected int height;
     protected int attack;
-
-    public int getDamage(int dmg) {
-        return dmg; // o el valor correspondiente
-    }
 }

@@ -36,11 +36,6 @@ public class PeaShooterDrawing extends JComponent implements IComponentID{
         startAnimation();
     }
 
-    public void updatePosition() {
-        setLocation(peaShooter.getX(), peaShooter.getY());
-        repaint();
-    }
-
     private void startAnimation() {
         animationTimer = new Timer(100, e -> {
             frame = (frame + 1) % totalFrames;

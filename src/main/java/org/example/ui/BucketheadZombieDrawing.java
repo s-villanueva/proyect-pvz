@@ -34,7 +34,6 @@ public class BucketheadZombieDrawing extends JComponent implements IComponentID 
             e.printStackTrace();
         }
 
-        // Crear instancia de dibujo básico como respaldo
         fallbackDrawing = new ZombieDrawing(zombie);
 
         startAnimation();
@@ -54,12 +53,6 @@ public class BucketheadZombieDrawing extends JComponent implements IComponentID 
             repaint();
         });
         animationTimer.start();
-    }
-
-    public void stopAnimation() {
-        if (animationTimer != null) {
-            animationTimer.stop();
-        }
     }
 
     public String getId() {

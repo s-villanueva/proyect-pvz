@@ -7,83 +7,94 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-public class CherryBombDrawing extends JComponent implements IComponentID{
-    private BufferedImage bi;
-
+public class CherryBombDrawing extends JComponent implements IComponentID {
     private CherryBomb cherryBomb;
-    private int frame = 0; // Animación de frames
-    private int cantFrames = 8; // Número de frames para la animación de CherryBomb
-    private long prevTime;
-    private boolean exploding = false; // Indica si la CherryBomb está explotando
+    private BufferedImage spriteSheet;
+    private List<BufferedImage> normalFrames = new ArrayList<>();
+    private List<BufferedImage> explosionFrames = new ArrayList<>();
+    private int frame = 0;
+
+    private Timer animationTimer;
+
 
     public CherryBombDrawing(CherryBomb cherryBomb) {
         this.cherryBomb = cherryBomb;
-        prevTime = System.currentTimeMillis();
-        setBounds(cherryBomb.getX(), cherryBomb.getY(), cherryBomb.getWidth(), cherryBomb.getHeight()); // Establece las dimensiones
+        setBounds(cherryBomb.getX(), cherryBomb.getY(), cherryBomb.getWidth(), cherryBomb.getHeight());
+        setOpaque(false);
 
-        // Cargar la spritesheet de CherryBomb
-        InputStream inputStream = null;
-        try {
-            inputStream = this.getClass().getClassLoader().getResourceAsStream("CherryBombSprites.png"); // Asegúrate de que el nombre del archivo es correcto
-            bi = ImageIO.read(inputStream);
-        } catch (IOException e) {
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("CherryBombSprites.png")) {
+            spriteSheet = ImageIO.read(stream);
+            loadFrames();
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        }
+
+        startAnimation();
+    }
+
+    private void loadFrames() {
+        normalFrames.add(spriteSheet.getSubimage(168, 19, 37, 34));
+        normalFrames.add(spriteSheet.getSubimage(202, 19, 37, 34));
+        normalFrames.add(spriteSheet.getSubimage(242, 15, 45, 39));
+        normalFrames.add(spriteSheet.getSubimage(290, 15, 45, 39));
+        normalFrames.add(spriteSheet.getSubimage(338, 13, 50, 37));
+        normalFrames.add(spriteSheet.getSubimage(391, 13, 50, 37));
+
+        explosionFrames.add(spriteSheet.getSubimage(169, 74, 67, 59));
+        explosionFrames.add(spriteSheet.getSubimage(237, 66, 96, 72));
+        explosionFrames.add(spriteSheet.getSubimage(417, 62, 91, 73));
+        explosionFrames.add(spriteSheet.getSubimage(512, 61, 91, 73));
+        explosionFrames.add(spriteSheet.getSubimage(697, 61, 92, 69));
+        explosionFrames.add(spriteSheet.getSubimage(790, 64, 89, 67));
+
+    }
+
+    private void startAnimation() {
+        animationTimer = new Timer(120, e -> {
+            frame++;
+            int total = cherryBomb.isExploded() ? explosionFrames.size() : normalFrames.size();
+            if (frame >= total) {
+                if (cherryBomb.isExploded()) {
+                    // Detener después de la explosión
+                    animationTimer.stop();
+                    frame = total - 1; // Quedarse en el último frame
+                } else {
+                    frame = 0;
                 }
             }
-        }
+            repaint();
+        });
+        animationTimer.start();
     }
 
-    public String getId() {
-        return cherryBomb.getId();
-    }
-
-    // Método que cambia el estado de explosión
-    public void setExplosion(boolean explosionState) {
-        this.exploding = explosionState;
-        if (exploding) {
-            // Reiniciar la animación si está explotando
-            frame = 0;
-            prevTime = System.currentTimeMillis(); // Reiniciar el tiempo de animación
-        }
-        repaint(); // Redibujar el componente para reflejar el cambio de estado
+    public void updatePosition() {
+        setLocation(cherryBomb.getX(), cherryBomb.getY());
+        repaint();
     }
 
     @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g); // Limpia el componente antes de dibujar nuevamente
-        Graphics2D g2d = (Graphics2D) g;
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        List<BufferedImage> currentFrames = cherryBomb.isExploded() ? explosionFrames : normalFrames;
 
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - prevTime > 100) { // Cambia de frame cada 100ms
-            if (exploding) {
-                // Si está explotando, anima los frames de explosión
-                frame = (frame + 1) % cantFrames;
-            }
-            prevTime = currentTime;
+        if (!currentFrames.isEmpty() && frame < currentFrames.size()) {
+            BufferedImage currentFrame = currentFrames.get(frame);
+            int imgW = currentFrame.getWidth();
+            int imgH = currentFrame.getHeight();
+            g.drawImage(currentFrame, (getWidth() - imgW) / 2, (getHeight() - imgH) / 2, this);
+        } else {
+            g.setColor(Color.RED);
+            g.fillRect(0, 0, getWidth(), getHeight());
         }
+    }
 
-        if (bi != null) {
-            // Determina la posición inicial del frame en la spritesheet
-            int fxInitial = 168; // Ajustar según la spritesheet
-            int fyInitial = 12;
-            int frameWidth = 34;  // Ajustar según el ancho de cada frame en la spritesheet
-            int frameHeight = 38; // Ajustar según la altura de cada frame en la spritesheet
-
-            // Calcula la posición del sprite para el frame actual
-            int xSprite = fxInitial + (frame * (frameWidth + 3)); // 3 es el espaciado entre los frames
-            g2d.drawImage(bi, 0, 0, getWidth(), getHeight(),  // Dibuja el frame actual
-                    xSprite, fyInitial,
-                    xSprite + frameWidth, fyInitial + frameHeight, this);
-        }
+    @Override
+    public String getId() {
+        return cherryBomb.getId();
     }
 }

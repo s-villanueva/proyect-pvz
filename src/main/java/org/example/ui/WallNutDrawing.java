@@ -10,9 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * WallNutDrawing animado y escalado
- */
 @Getter
 public class WallNutDrawing extends JComponent implements IComponentID{
     private BufferedImage spriteSheet;
@@ -22,15 +19,15 @@ public class WallNutDrawing extends JComponent implements IComponentID{
 
     private WallNut wallNut;
 
-    private final int frameCount = 5; // <- Cambia este número según cuántos frames tenga tu WallNut
+    private final int frameCount = 5;
     private final int frameWidth;
     private final int frameHeight;
-    private final int animationSpeed = 150; // Milisegundos entre frames
+    private final int animationSpeed = 150;
 
-    private final int startX = 168; // <- Cambia estos valores si el primer frame no empieza en (0,0)
+    private final int startX = 168;
     private final int startY = 12;
 
-    private final double scaleFactor = 2.0; // Escalado 2x
+    private final double scaleFactor = 2.0;
 
     public WallNutDrawing(WallNut wallNut) {
         this.wallNut = wallNut;
@@ -52,8 +49,8 @@ public class WallNutDrawing extends JComponent implements IComponentID{
         }
 
         if (spriteSheet != null) {
-            frameWidth = 29;   // <- Ajusta el ancho real de cada frame
-            frameHeight = 33;  // <- Ajusta el alto real de cada frame
+            frameWidth = 29;
+            frameHeight = 33;
 
             int scaledWidth = (int) (frameWidth * scaleFactor);
             int scaledHeight = (int) (frameHeight * scaleFactor);

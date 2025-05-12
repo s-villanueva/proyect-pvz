@@ -2,60 +2,70 @@ package org.example.model.plant;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.model.attack.Bomb;
-import org.example.ui.Frame;
+import org.example.model.Audio.AudioName;
+import org.example.logic.Game;
+import org.example.model.zombie.Zombie;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
-public class CherryBomb extends Bomb {
+public class CherryBomb extends Plant {
 
-    private long explosionTime = 2000; // 2000ms = 2 segundos (tiempo antes de explotar)
-    private long prevTime;
-    private boolean exploded;
+    private String id;
+    private long explosionTime;
+    private long plantTime;
+    private final long explosionDelay = 300;
+    private boolean exploded = false;
+    private final Game game;
 
-    // Referencia a la ventana (o Frame) para actualizar la UI
-    private Frame gameFrame;
-
-//    public CherryBomb(int x, int y, int width, int height, Frame gameFrame) {
-//        this.id = UUID.randomUUID().toString();
-//        this.x = x;
-//        this.y = y;
-//        this.width = width;
-//        this.height = height;
-//        this.prevTime = System.currentTimeMillis();
-//        this.exploded = false;
-//        this.gameFrame = gameFrame; // Guardar referencia a la UI
-//        this.sunCost = 150;
-//    }
-
-    // Método que maneja la explosión de la CherryBomb
-    public void explode() {
-        if (!exploded) {
-            exploded = true;
-            // Llamamos a la función explosionUI para mostrar la animación
-            gameFrame.explosionUI(this);
-
-            // Imprime un mensaje para probar que la explosión ha ocurrido
-            System.out.println("La CherryBomb ha explotado en las coordenadas: (" + x + ", " + y + ")");
-        }
+    public CherryBomb(int x, int y, int width, int height, Game game) {
+        this.x = x;
+        this.id = UUID.randomUUID().toString();
+        this.explosionTime = System.currentTimeMillis();
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.game = game;
+        this.plantTime = System.currentTimeMillis();
+        this.setHealth(9999);
     }
 
-//    @Override
-//    public String toString() {
-//        return "CherryBomb{" +
-//                "explosionTime=" + explosionTime +
-//                ", prevTime=" + prevTime +
-//                ", exploded=" + exploded +
-//                ", id='" + id + '\'' +
-//                ", x=" + x +
-//                ", y=" + y +
-//                ", width=" + width +
-//                ", height=" + height +
-//                ", reloadTime=" + reloadTime +
-//                ", defenseInitial=" + defenseInitial +
-//                ", defense=" + defense +
-//                '}';
-//    }
+    public void explode() {
+        exploded = true;
+        explosionTime = System.currentTimeMillis();
+
+        int col = game.getColFromX(getX());
+        int row = getRow();
+
+        List<Zombie> zombiesSnapshot;
+        synchronized (game.getZombies()) {
+            zombiesSnapshot = new ArrayList<>(game.getZombies());
+        }
+
+        for (int r = row - 1; r <= row + 1; r++) {
+            for (int c = col - 1; c <= col + 1; c++) {
+                if (r >= 0 && r < 5 && c >= 0 && c < 9) {
+                    for (Zombie z : zombiesSnapshot) {
+                        if (z.getRow() == r && game.getColFromX(z.getX()) == c) {
+                            game.getIGameEvents().playAudio(AudioName.CHERRYBOMBING);
+                            z.takeDamage(z.getHealth()); // daño letal
+                        }
+                    }
+                }
+            }
+        }
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                game.removePlant(this);
+                game.getIGameEvents().deleteComponentUI(getId());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }

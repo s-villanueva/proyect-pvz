@@ -13,8 +13,8 @@ public class SnowPea extends Attack {
     private int advanceTime = 5; // 5ms
     private int maxXToDied;
     private long prevTime;
-    private double slowEffectDuration = 3.0; // duración en segundos
-    private double slowPercentage = 0.5; // ralentización del 50%
+    private double slowEffectDuration = 3.0;
+    private double slowPercentage = 0.5;
 
     public SnowPea(int x, int y, int width, int height) {
         this.id = UUID.randomUUID().toString();
@@ -27,7 +27,7 @@ public class SnowPea extends Attack {
     }
 
     public void avanzar() {
-        x = x + 4; // avanza igual que el GreenPea
+        x = x + 4;
     }
 
 

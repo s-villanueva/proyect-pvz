@@ -9,10 +9,10 @@ import java.util.UUID;
 @Setter
 public class SnowPeaShooter extends Plant {
 
-    private int attackTime = 1200; // Dispara un poco más lento que el PeaShooter normal
+    private int attackTime = 1200;
     private long prevTime;
-    private double slowEffectDuration = 3.0; // en segundos, por ejemplo
-    private double slowPercentage = 0.5; // reduce la velocidad del zombie al 50%
+    private double slowEffectDuration = 3.0;
+    private double slowPercentage = 0.5;
 
     public SnowPeaShooter(int x, int y, int width, int height) {
         this.id = UUID.randomUUID().toString();

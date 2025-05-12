@@ -17,11 +17,11 @@ public class GreenPeaDrawing extends JComponent implements IComponentID {
 
     public GreenPeaDrawing(GreenPea greenPea) {
         this.greenPea = greenPea;
-        setBounds(greenPea.getX(), greenPea.getY(), greenPea.getWidth(), greenPea.getHeight()); // obligatorio
+        setBounds(greenPea.getX(), greenPea.getY(), greenPea.getWidth(), greenPea.getHeight());
 
         InputStream inputStream = null;
         try {
-            inputStream = this.getClass().getClassLoader().getResourceAsStream("ProjectilePea.png"); // funciona con png o jpg, pero no con webp
+            inputStream = this.getClass().getClassLoader().getResourceAsStream("ProjectilePea.png");
             bi = ImageIO.read(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
